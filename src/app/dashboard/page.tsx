@@ -3,9 +3,24 @@ import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data, error } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  if (error || !data.user) redirect('/login')
+  const { data: projects } = await supabase
+    .from('projects')
+    .select()
+    .order('created_at', { ascending: false })
 
-  return <p>Logged in as {data.user.email}</p>
+  return (
+    <main>
+      <h1>Projects</h1>
+      {projects?.map(project => (
+        <div key={project.id}>
+          <p>{project.display_name}</p>
+          <p>{project.github_repo}</p>
+        </div>
+      ))}
+      <a href="/dashboard/projects/new">Add project</a>
+    </main>
+  )
 }
