@@ -3,6 +3,7 @@ import { fetchConfig } from '@/lib/cms/config'
 import { getDirectory } from '@/lib/github/api'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default async function CollectionPage({
   params,
@@ -15,13 +16,13 @@ export default async function CollectionPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: project } = await supabase
+  const { data: repo } = await supabase
     .from('repos')
     .select()
     .eq('id', repoId)
     .single()
 
-  if (!project) redirect('/dashboard')
+  if (!repo) redirect('/dashboard')
 
   const { data: tokenRow } = await supabase
     .from('github_tokens')
@@ -30,8 +31,8 @@ export default async function CollectionPage({
 
   const config = await fetchConfig(
     tokenRow!.access_token,
-    project.github_repo,
-    project.config_path
+    repo.github_repo,
+    repo.config_path
   )
 
   const collectionConfig = config.collections.find(c => c.name === collection)
@@ -39,28 +40,50 @@ export default async function CollectionPage({
 
   const files = await getDirectory(
     tokenRow!.access_token,
-    project.github_repo,
+    repo.github_repo,
     collectionConfig.path
   )
 
   const documents = files.filter(f => f.type === 'file' && f.name.endsWith('.md'))
 
   return (
-    <main>
-      <h1>{collectionConfig.label}</h1>
-      <Link href={`/dashboard/${repoId}`}>← Back</Link>
-      <ul>
-        {documents.map(doc => (
-          <li key={doc.path}>
-            <Link href={`/dashboard/${repoId}/${collection}/${doc.name.replace('.md', '')}`}>
-              {doc.name.replace('.md', '')}
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold">{collectionConfig.label}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{collectionConfig.path}</p>
+        </div>
+        <Button asChild>
+          <Link href={`/dashboard/${repoId}/${collection}/new`}>
+            New document
+          </Link>
+        </Button>
+      </div>
+      {documents.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground">
+          <p className="mb-4">No documents yet.</p>
+          <Button asChild variant="outline">
+            <Link href={`/dashboard/${repoId}/${collection}/new`}>
+              Create your first document
             </Link>
-          </li>
-        ))}
-      </ul>
-      <Link href={`/dashboard/${repoId}/${collection}/new`}>
-        + New document
-      </Link>
-    </main>
+          </Button>
+        </div>
+      ) : (
+        <div className="border rounded-md divide-y">
+          {documents.map(doc => (
+            <Link
+              key={doc.path}
+              href={`/dashboard/${repoId}/${collection}/${doc.name.replace('.md', '')}`}
+              className="flex items-center justify-between px-4 py-3 hover:bg-accent transition-colors"
+            >
+              <span className="text-sm font-medium">
+                {doc.name.replace('.md', '')}
+              </span>
+              <span className="text-xs text-muted-foreground">Edit →</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

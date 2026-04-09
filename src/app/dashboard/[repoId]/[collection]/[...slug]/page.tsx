@@ -45,16 +45,13 @@ export default async function EditPage({
         .then(({ content, sha }) => parseDocument(content, sha))
 
   return (
-    <main>
-      <h1>{isNew ? `New ${collection.label}` : collection.label}</h1>
-      <DocumentEditor
-        repoId={repoId}
-        collection={collection}
-        document={document}
-        filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}
-        isNew={isNew}
-        collectionPath={collection.path}
-      />
-    </main>
+    <DocumentEditor
+      repoId={repoId}
+      collection={collection}
+      document={document}
+      filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}
+      isNew={isNew}
+      collectionPath={collection.path}
+    />
   )
 }

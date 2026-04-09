@@ -1,7 +1,7 @@
 'use client'
 import type { FieldProps } from './types'
 
-export default function NumberField({ field, value, onChange }: FieldProps<number>) {
+export default function NumberField({ field, value, onChangeAction }: FieldProps<number>) {
   return (
     <div>
       <label>{field.label}</label>
@@ -9,7 +9,7 @@ export default function NumberField({ field, value, onChange }: FieldProps<numbe
         type="number"
         value={value ?? ''}
         required={field.required}
-        onChange={e => onChange(Number(e.target.value))}
+        onChange={e => onChangeAction(Number(e.target.value))}
       />
     </div>
   )

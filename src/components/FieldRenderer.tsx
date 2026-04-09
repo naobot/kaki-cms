@@ -10,7 +10,7 @@ import ListOfObjectsField from './fields/ListOfObjectsField'
 type Props = {
   field: Field
   value: unknown
-  onChange: (value: unknown) => void
+  onChangeAction: (value: unknown) => void
 }
 
 const componentMap = {
@@ -22,7 +22,7 @@ const componentMap = {
   'list-of-objects': ListOfObjectsField,
 } as const
 
-export default function FieldRenderer({ field, value, onChange }: Props) {
+export default function FieldRenderer({ field, value, onChangeAction }: Props) {
   const Component = componentMap[field.type as keyof typeof componentMap]
 
   if (!Component) {
@@ -33,7 +33,7 @@ export default function FieldRenderer({ field, value, onChange }: Props) {
     <Component
       field={field}
       value={value as never}
-      onChange={onChange as never}
+      onChangeAction={onChangeAction as never}
     />
   )
 }
