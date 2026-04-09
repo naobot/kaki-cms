@@ -3,6 +3,7 @@ import { fetchConfig } from '@/lib/cms/config'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import InviteForm from '@/components/InviteForm'
 
 export default async function RepoPage({
   params,
@@ -52,6 +53,7 @@ export default async function RepoPage({
           </Link>
         ))}
       </div>
+      <InviteForm repoId={repoId} />
     </div>
   )
 }
