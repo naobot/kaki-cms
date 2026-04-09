@@ -61,7 +61,7 @@ export default async function CollectionPage({
       </div>
       {documents.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
-          <p className="mb-4">No documents yet.</p>
+          <p className="mb-4">No documents yet</p>
           <Button asChild variant="outline">
             <Link href={`/dashboard/${repoId}/${collection}/new`}>
               Create your first document

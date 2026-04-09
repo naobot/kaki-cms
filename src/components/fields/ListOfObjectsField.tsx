@@ -1,46 +1,65 @@
 'use client'
 import type { FieldProps } from './types'
-import type { Field } from '@/lib/cms/types'
-import FieldRenderer from '../FieldRenderer'
+import FieldRenderer from '@/components/FieldRenderer'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 type ObjectValue = Record<string, unknown>
 
-export default function ListOfObjectsField({ field, value, onChange }: FieldProps<ObjectValue[]>) {
+export default function ListOfObjectsField({ field, value, onChangeAction }: FieldProps<ObjectValue[]>) {
   const items = value ?? []
 
   function updateItem(index: number, fieldName: string, newValue: unknown) {
     const updated = [...items]
     updated[index] = { ...updated[index], [fieldName]: newValue }
-    onChange(updated)
+    onChangeAction(updated)
   }
 
   function addItem() {
-    onChange([...items, {}])
+    onChangeAction([...items, {}])
   }
 
   function removeItem(index: number) {
-    onChange(items.filter((_, i) => i !== index))
+    onChangeAction(items.filter((_, i) => i !== index))
   }
 
   return (
-    <div>
-      <label>{field.label}</label>
-      {items.map((item, index) => (
-        <div key={index}>
-          {(field.fields ?? []).map(subField => (
-            <FieldRenderer
-              key={subField.name}
-              field={subField}
-              value={item[subField.name]}
-              onChange={newValue => updateItem(index, subField.name, newValue)}
-            />
-          ))}
-          <button type="button" onClick={() => removeItem(index)}>
-            Remove
-          </button>
-        </div>
-      ))}
-      <button type="button" onClick={addItem}>Add {field.label}</button>
+    <div className="space-y-1">
+      <Label>{field.label}</Label>
+      <div className="flex flex-col gap-4 pt-1">
+        {items.map((item, index) => (
+          <div key={index} className="border rounded-md p-4 flex flex-col gap-4">
+            {(field.fields ?? []).map(subField => (
+              <FieldRenderer
+                key={subField.name}
+                field={subField}
+                value={item[subField.name]}
+                onChangeAction={newValue => updateItem(index, subField.name, newValue)}
+              />
+            ))}
+            <Separator />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="self-start"
+              onClick={() => removeItem(index)}
+            >
+              Remove
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="self-start"
+          onClick={addItem}
+        >
+          + Add {field.label}
+        </Button>
+      </div>
     </div>
   )
 }

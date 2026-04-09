@@ -7,11 +7,13 @@ export default function TextField({ field, value, onChangeAction }: FieldProps<s
   return (
     <div className="space-y-1">
       <Label>{field.label}</Label>
-      <Input
-        value={value ?? ''}
-        required={field.required}
-        onChange={e => onChangeAction(e.target.value)}
-      />
+      <div className="flex flex-col gap-4 pt-1">
+        <Input
+          value={value ?? ''}
+          required={field.required}
+          onChange={e => onChangeAction(e.target.value)}
+        />
+      </div>
     </div>
   )
 }

@@ -83,13 +83,15 @@ export default function DocumentEditor({
         {isNew && (
           <div className="space-y-1">
             <Label htmlFor="filename">Filename (no extension)</Label>
-            <Input
-              id="filename"
-              value={filename}
-              onChange={e => setFilename(e.target.value)}
-              placeholder="my-new-document"
-              required
-            />
+            <div className="flex flex-col gap-4 pt-1">
+              <Input
+                id="filename"
+                value={filename}
+                onChange={e => setFilename(e.target.value)}
+                placeholder="my-new-document"
+                required
+              />
+            </div>
           </div>
         )}
 
@@ -106,12 +108,14 @@ export default function DocumentEditor({
 
         <div className="space-y-1">
           <Label>Page Content</Label>
-          <Textarea
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            className="min-h-64 font-mono text-sm"
-            placeholder="Write your markdown content here..."
-          />
+          <div className="flex flex-col gap-4 pt-1">
+            <Textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              className="min-h-64 font-mono text-sm"
+              placeholder="Write your markdown content here..."
+            />
+          </div>
         </div>
       </div>
     </div>

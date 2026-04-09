@@ -1,11 +1,11 @@
 'use client'
 import type { Field } from '@/lib/cms/types'
-import TextField from './fields/TextField'
-import TextareaField from './fields/TextareaField'
-import NumberField from './fields/NumberField'
-import MultiselectField from './fields/MultiselectField'
-import ListField from './fields/ListField'
-import ListOfObjectsField from './fields/ListOfObjectsField'
+import TextField from '@/components/fields/TextField'
+import TextareaField from '@/components/fields/TextareaField'
+import NumberField from '@/components/fields/NumberField'
+import MultiselectField from '@/components/fields/MultiselectField'
+import ListField from '@/components/fields/ListField'
+import ListOfObjectsField from '@/components/fields/ListOfObjectsField'
 
 type Props = {
   field: Field
