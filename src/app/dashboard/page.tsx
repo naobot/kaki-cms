@@ -9,7 +9,14 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
 
   const { data: { session } } = await supabase.auth.getSession()
-  const githubToken = session?.provider_token
+  const { data: tokenRow } = await supabase
+    .from('github_tokens')
+    .select('access_token')
+    .single()
+
+  const githubToken = tokenRow?.access_token
+
+  console.log('provider_token:', githubToken)
 
   const { data: projects } = await supabase
     .from('projects')
