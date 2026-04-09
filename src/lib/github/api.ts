@@ -44,3 +44,28 @@ export async function getDirectory(
     type: item.type,
   }))
 }
+
+export async function putFile(
+  token: string,
+  repo: string,
+  path: string,
+  content: string,
+  sha: string,
+  message: string
+): Promise<void> {
+  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      content: Buffer.from(content).toString('base64'),
+      sha,
+    }),
+  })
+
+  if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
+}
