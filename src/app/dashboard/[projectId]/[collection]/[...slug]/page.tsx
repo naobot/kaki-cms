@@ -11,8 +11,9 @@ export default async function EditPage({
   params: Promise<{ projectId: string; collection: string; slug: string[] }>
 }) {
   const { projectId, collection: collectionName, slug } = await params
-  const supabase = await createClient()
+  const isNew = slug.length === 1 && slug[0] === 'new'
 
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -38,18 +39,21 @@ export default async function EditPage({
   const collection = config.collections.find(c => c.name === collectionName)
   if (!collection) redirect(`/dashboard/${projectId}`)
 
-  const filePath = `${collection.path}/${slug.join('/')}.md`
-  const { content, sha } = await getFile(tokenRow!.access_token, project.github_repo, filePath)
-  const parsedDocument = parseDocument(content, sha)
+  const document = isNew
+    ? { frontmatter: {}, body: '', sha: '' }
+    : await getFile(tokenRow!.access_token, project.github_repo, `${collection.path}/${slug.join('/')}.md`)
+        .then(({ content, sha }) => parseDocument(content, sha))
 
   return (
     <main>
-      <h1>{collection.label}</h1>
+      <h1>{isNew ? `New ${collection.label}` : collection.label}</h1>
       <DocumentEditor
         projectId={projectId}
         collection={collection}
-        document={parsedDocument}
-        filePath={filePath}
+        document={document}
+        filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}
+        isNew={isNew}
+        collectionPath={collection.path}
       />
     </main>
   )

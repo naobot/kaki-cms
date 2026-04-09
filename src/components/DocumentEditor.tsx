@@ -9,13 +9,23 @@ type Props = {
   projectId: string
   collection: Collection
   document: ParsedDocument
-  filePath: string
+  filePath: string | null
+  isNew: boolean
+  collectionPath: string
 }
 
-export default function DocumentEditor({ projectId, collection, document, filePath }: Props) {
+export default function DocumentEditor({
+  projectId,
+  collection,
+  document,
+  filePath,
+  isNew,
+  collectionPath,
+}: Props) {
   const router = useRouter()
   const [frontmatter, setFrontmatter] = useState<Record<string, unknown>>(document.frontmatter)
   const [body, setBody] = useState(document.body)
+  const [filename, setFilename] = useState('')
   const [saving, setSaving] = useState(false)
 
   function updateField(name: string, value: unknown) {
@@ -24,17 +34,46 @@ export default function DocumentEditor({ projectId, collection, document, filePa
 
   async function handleSave() {
     setSaving(true)
+
+    const resolvedFilePath = isNew
+      ? `${collectionPath}/${filename}.md`
+      : filePath
+
     await fetch(`/api/projects/${projectId}/content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ frontmatter, body, sha: document.sha, filePath }),
+      body: JSON.stringify({
+        frontmatter,
+        body,
+        sha: document.sha,
+        filePath: resolvedFilePath,
+        isNew,
+      }),
     })
+
     setSaving(false)
-    router.refresh()
+
+    if (isNew) {
+      router.push(`/dashboard/${projectId}/${collection.name}`)
+    } else {
+      router.refresh()
+    }
   }
 
   return (
     <div>
+      {isNew && (
+        <div>
+          <label>Filename (no extension)</label>
+          <input
+            type="text"
+            value={filename}
+            onChange={e => setFilename(e.target.value)}
+            placeholder="my-new-project"
+            required
+          />
+        </div>
+      )}
       {collection.fields.map(field => (
         <FieldRenderer
           key={field.name}
@@ -50,7 +89,7 @@ export default function DocumentEditor({ projectId, collection, document, filePa
           onChange={e => setBody(e.target.value)}
         />
       </div>
-      <button onClick={handleSave} disabled={saving}>
+      <button onClick={handleSave} disabled={saving || (isNew && !filename)}>
         {saving ? 'Saving...' : 'Save'}
       </button>
     </div>

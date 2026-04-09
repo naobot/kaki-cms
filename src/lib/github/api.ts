@@ -50,7 +50,7 @@ export async function putFile(
   repo: string,
   path: string,
   content: string,
-  sha: string,
+  sha: string | undefined,
   message: string
 ): Promise<void> {
   const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
@@ -63,7 +63,7 @@ export async function putFile(
     body: JSON.stringify({
       message,
       content: Buffer.from(content).toString('base64'),
-      sha,
+      ...(sha ? { sha } : {}),
     }),
   })
 

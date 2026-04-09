@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getFile, putFile } from '@/lib/github/api'
+import { putFile } from '@/lib/github/api'
 import { serialiseDocument } from '@/lib/cms/parser'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -26,7 +26,7 @@ export async function PUT(
     .select('access_token')
     .single()
 
-  const { frontmatter, body, sha, filePath } = await request.json()
+  const { frontmatter, body, sha, filePath, isNew } = await request.json()
 
   const serialised = serialiseDocument(frontmatter, body)
 
@@ -35,8 +35,8 @@ export async function PUT(
     project.github_repo,
     filePath,
     serialised,
-    sha,
-    `Update ${filePath} via CMS`
+    isNew ? undefined : sha,
+    isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
   )
 
   return NextResponse.json({ success: true })
