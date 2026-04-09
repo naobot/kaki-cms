@@ -20,7 +20,7 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Client Repos</h1>
         <Button asChild>
-          <Link href="/dashboard/projects/new">Add repo</Link>
+          <Link href="/dashboard/repos/new">Add repo</Link>
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
