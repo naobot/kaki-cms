@@ -1,25 +1,33 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 
-export default function DeleteProjectButton({ projectId }: { projectId: string }) {
+export default function DeleteProjectButton({ repoId }: { repoId: string }) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
 
   async function handleDelete() {
-    await fetch(`/api/projects/${projectId}`, { method: 'DELETE' })
+    await fetch(`/api/repos/${repoId}`, { method: 'DELETE' })
     router.refresh()
   }
 
   if (confirming) {
     return (
-      <>
-        <span>Are you sure?</span>
-        <button onClick={handleDelete}>Yes, delete</button>
-        <button onClick={() => setConfirming(false)}>Cancel</button>
-      </>
+      <div className="flex gap-2">
+        <Button variant="destructive" size="sm" onClick={handleDelete}>
+          Confirm
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+          Cancel
+        </Button>
+      </div>
     )
   }
 
-  return <button onClick={() => setConfirming(true)}>Delete</button>
+  return (
+    <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+      Delete
+    </Button>
+  )
 }

@@ -14,7 +14,7 @@ export async function PUT(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: project } = await supabase
-    .from('projects')
+    .from('repos')
     .select()
     .eq('id', id)
     .single()

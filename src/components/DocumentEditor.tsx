@@ -6,7 +6,7 @@ import type { ParsedDocument } from '@/lib/cms/parser'
 import FieldRenderer from './FieldRenderer'
 
 type Props = {
-  projectId: string
+  repoId: string
   collection: Collection
   document: ParsedDocument
   filePath: string | null
@@ -15,7 +15,7 @@ type Props = {
 }
 
 export default function DocumentEditor({
-  projectId,
+  repoId,
   collection,
   document,
   filePath,
@@ -39,7 +39,7 @@ export default function DocumentEditor({
       ? `${collectionPath}/${filename}.md`
       : filePath
 
-    await fetch(`/api/projects/${projectId}/content`, {
+    await fetch(`/api/repos/${repoId}/content`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -54,7 +54,7 @@ export default function DocumentEditor({
     setSaving(false)
 
     if (isNew) {
-      router.push(`/dashboard/${projectId}/${collection.name}`)
+      router.push(`/dashboard/${repoId}/${collection.name}`)
     } else {
       router.refresh()
     }
@@ -69,7 +69,7 @@ export default function DocumentEditor({
             type="text"
             value={filename}
             onChange={e => setFilename(e.target.value)}
-            placeholder="my-new-project"
+            placeholder="my-new-repo"
             required
           />
         </div>

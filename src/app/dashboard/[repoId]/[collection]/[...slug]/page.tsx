@@ -8,9 +8,9 @@ import DocumentEditor from '@/components/DocumentEditor'
 export default async function EditPage({
   params,
 }: {
-  params: Promise<{ projectId: string; collection: string; slug: string[] }>
+  params: Promise<{ repoId: string; collection: string; slug: string[] }>
 }) {
-  const { projectId, collection: collectionName, slug } = await params
+  const { repoId, collection: collectionName, slug } = await params
   const isNew = slug.length === 1 && slug[0] === 'new'
 
   const supabase = await createClient()
@@ -18,9 +18,9 @@ export default async function EditPage({
   if (!user) redirect('/login')
 
   const { data: project } = await supabase
-    .from('projects')
+    .from('repos')
     .select()
-    .eq('id', projectId)
+    .eq('id', repoId)
     .single()
 
   if (!project) redirect('/dashboard')
@@ -37,7 +37,7 @@ export default async function EditPage({
   )
 
   const collection = config.collections.find(c => c.name === collectionName)
-  if (!collection) redirect(`/dashboard/${projectId}`)
+  if (!collection) redirect(`/dashboard/${repoId}`)
 
   const document = isNew
     ? { frontmatter: {}, body: '', sha: '' }
@@ -48,7 +48,7 @@ export default async function EditPage({
     <main>
       <h1>{isNew ? `New ${collection.label}` : collection.label}</h1>
       <DocumentEditor
-        projectId={projectId}
+        repoId={repoId}
         collection={collection}
         document={document}
         filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}

@@ -7,18 +7,18 @@ import Link from 'next/link'
 export default async function CollectionPage({
   params,
 }: {
-  params: Promise<{ projectId: string; collection: string }>
+  params: Promise<{ repoId: string; collection: string }>
 }) {
-  const { projectId, collection } = await params
+  const { repoId, collection } = await params
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { data: project } = await supabase
-    .from('projects')
+    .from('repos')
     .select()
-    .eq('id', projectId)
+    .eq('id', repoId)
     .single()
 
   if (!project) redirect('/dashboard')
@@ -35,7 +35,7 @@ export default async function CollectionPage({
   )
 
   const collectionConfig = config.collections.find(c => c.name === collection)
-  if (!collectionConfig) redirect(`/dashboard/${projectId}`)
+  if (!collectionConfig) redirect(`/dashboard/${repoId}`)
 
   const files = await getDirectory(
     tokenRow!.access_token,
@@ -48,17 +48,17 @@ export default async function CollectionPage({
   return (
     <main>
       <h1>{collectionConfig.label}</h1>
-      <Link href={`/dashboard/${projectId}`}>← Back</Link>
+      <Link href={`/dashboard/${repoId}`}>← Back</Link>
       <ul>
         {documents.map(doc => (
           <li key={doc.path}>
-            <Link href={`/dashboard/${projectId}/${collection}/${doc.name.replace('.md', '')}`}>
+            <Link href={`/dashboard/${repoId}/${collection}/${doc.name.replace('.md', '')}`}>
               {doc.name.replace('.md', '')}
             </Link>
           </li>
         ))}
       </ul>
-      <Link href={`/dashboard/${projectId}/${collection}/new`}>
+      <Link href={`/dashboard/${repoId}/${collection}/new`}>
         + New document
       </Link>
     </main>

@@ -11,7 +11,7 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { error } = await supabase
-    .from('projects')
+    .from('repos')
     .delete()
     .eq('id', id)
 

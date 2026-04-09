@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const { display_name, github_repo, config_path } = await request.json()
 
   const { data, error } = await supabase
-    .from('projects')
+    .from('repos')
     .insert({ display_name, github_repo, config_path, owner_id: user.id })
     .select()
     .single()
@@ -27,7 +27,7 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { error } = await supabase
-    .from('projects')
+    .from('repos')
     .delete()
     .eq('id', params.id)
 

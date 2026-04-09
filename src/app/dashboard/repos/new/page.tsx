@@ -25,7 +25,7 @@ export default function NewProjectPage() {
 
   return (
     <main>
-      <h1>Add Project</h1>
+      <h1>Add Client Repo</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Display name
