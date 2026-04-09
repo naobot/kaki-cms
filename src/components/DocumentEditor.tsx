@@ -3,12 +3,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Collection } from '@/lib/cms/types'
 import type { ParsedDocument } from '@/lib/cms/parser'
-import FieldRenderer from './FieldRenderer'
+import FieldRenderer from '@/components/FieldRenderer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import Link from 'next/link'
 
 type Props = {
   repoId: string
@@ -68,15 +69,22 @@ export default function DocumentEditor({
   return (
     <div className="p-8 max-w-2xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold">
-          {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
-        </h1>
-        <Button
-          onClick={handleSave}
-          disabled={saving || (isNew && !filename)}
-        >
-          {saving ? 'Saving...' : 'Save'}
-        </Button>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-semibold">
+            {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
+          </h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost">
+            <Link href={`/dashboard/${repoId}`}>← Back</Link>
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || (isNew && !filename)}
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6">

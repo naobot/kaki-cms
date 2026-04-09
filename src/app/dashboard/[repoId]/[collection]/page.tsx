@@ -49,15 +49,22 @@ export default async function CollectionPage({
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold">{collectionConfig.label}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{collectionConfig.path}</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">{collectionConfig.label}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{collectionConfig.path}</p>
+          </div>
         </div>
-        <Button asChild>
-          <Link href={`/dashboard/${repoId}/${collection}/new`}>
-            New document
-          </Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost">
+            <Link href={`/dashboard/${repoId}`}>← Back</Link>
+          </Button>
+          <Button asChild>
+            <Link href={`/dashboard/${repoId}/${collection}/new`}>
+              New document
+            </Link>
+          </Button>
+        </div>
       </div>
       {documents.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
