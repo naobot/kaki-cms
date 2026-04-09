@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchConfig } from '@/lib/cms/config'
 import { redirect } from 'next/navigation'
+import DeleteProjectButton from '@/components/DeleteProjectButton'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -42,9 +43,10 @@ export default async function DashboardPage() {
           <p>{project.display_name}</p>
           <p>{project.github_repo}</p>
           {project.config
-            ? <p>Collections: {project.config.collections.map((c: { label: any }) => c.label).join(', ')}</p>
+            ? <p>Collections: {project.config.collections.map(c => c.label).join(', ')}</p>
             : <p>Config error: {project.error}</p>
           }
+          <DeleteProjectButton projectId={project.id} />
         </div>
       ))}
       <a href="/dashboard/projects/new">Add project</a>
