@@ -4,11 +4,19 @@ import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import DeleteProjectButton from '@/components/DeleteProjectButton'
+import { getEditorRepoId, getUserType } from '@/lib/cms/user'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const userType = await getUserType()
+  if (userType === 'editor') {
+    const repoId = await getEditorRepoId()
+    if (repoId) redirect(`/dashboard/${repoId}`)
+    else redirect('/login?error=no_repo')
+  }
 
   const { data: repos } = await supabase
     .from('repos')

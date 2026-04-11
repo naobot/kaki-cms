@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import GitHubLoginButton from '@/components/GitHubLoginButton'
+import EmailLoginForm from '@/components/EmailLoginForm'
 
 export default async function LoginPage({
   searchParams,
@@ -18,43 +20,40 @@ export default async function LoginPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (user && !error) redirect('/dashboard')
 
-  async function signInWithGitHub() {
-    'use server'
-    const supabase = await createClient()
-    const { data } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        scopes: 'repo user:email',
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      },
-    })
-    if (data.url) redirect(data.url)
-  }
-
   return (
     <main className="min-h-screen flex items-center justify-center">
-      {error === 'invalid_invite' && (
-        <p className="text-sm text-destructive text-center mb-4">
-          This invite link is invalid or has expired. Please ask your administrator to send a new invite.
-        </p>
-      )}
-      {!error &&
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle>Kaki CMS</CardTitle>
-          <CardDescription>
-            Sign in with your GitHub account to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={signInWithGitHub}>
-            <Button type="submit" className="w-full">
-              Login with GitHub
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-      }
+      <div className="w-full max-w-sm flex flex-col gap-4">
+        {error === 'invalid_invite' && (
+          <p className="text-sm text-destructive text-center">
+            This invite link is invalid or has expired. Please ask your administrator to send a new invite.
+          </p>
+        )}
+        {error === 'no_repo' && (
+          <p className="text-sm text-destructive text-center">
+            Your account is not associated with any repo. Please contact your administrator.
+          </p>
+        )}
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Kaki CMS</CardTitle>
+            <CardDescription>Sign in to continue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="editor">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="editor" className="flex-1">Editor</TabsTrigger>
+                <TabsTrigger value="developer" className="flex-1">Developer</TabsTrigger>
+              </TabsList>
+              <TabsContent value="editor">
+                <EmailLoginForm />
+              </TabsContent>
+              <TabsContent value="developer">
+                <GitHubLoginButton />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   )
 }

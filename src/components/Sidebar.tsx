@@ -14,9 +14,10 @@ type Props = {
   repoId?: string
   projectName?: string
   collections?: Collection[]
+  userType?: 'developer' | 'editor'
 }
 
-export default function Sidebar({ repoId, projectName, collections }: Props) {
+export default function Sidebar({ repoId, projectName, collections, userType }: Props) {
   const pathname = usePathname()
 
   return (
@@ -51,12 +52,14 @@ export default function Sidebar({ repoId, projectName, collections }: Props) {
         </>
       )}
       <div className='flex flex-col gap-4 mt-auto'>
-        <Link
-          href="/dashboard"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          ← All repos
-        </Link>
+        {userType === 'developer' && (
+          <Link
+            href="/dashboard"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← All repos
+          </Link>
+          )}
         <form action={signOut} className="mt-auto">
           <Button
             type="submit"

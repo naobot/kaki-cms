@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchConfig } from '@/lib/cms/config'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
+import { getUserType } from '@/lib/cms/user'
 
 export default async function ProjectLayout({
   children,
@@ -12,6 +13,7 @@ export default async function ProjectLayout({
 }) {
   const { repoId } = await params
   const supabase = await createClient()
+  const userType = await getUserType()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -41,6 +43,7 @@ export default async function ProjectLayout({
         repoId={repoId}
         projectName={project.display_name}
         collections={config.collections}
+        userType={userType}
       />
       <div className="flex-1 max-h-screen overflow-y-auto">
         {children}
