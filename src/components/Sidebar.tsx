@@ -2,6 +2,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
+import { signOut } from '@/lib/actions/auth'
+import { Button } from './ui/button'
 
 type Collection = {
   name: string
@@ -48,12 +50,22 @@ export default function Sidebar({ repoId, projectName, collections }: Props) {
           <Separator />
         </>
       )}
-      <Link
-        href="/dashboard"
-        className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-auto"
-      >
-        ← All repos
-      </Link>
+      <div className='flex flex-col gap-4 mt-auto'>
+        <Link
+          href="/dashboard"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← All repos
+        </Link>
+        <form action={signOut} className="mt-auto">
+          <Button
+            type="submit"
+            className="text-sm w-full"
+          >
+            Sign out
+          </Button>
+        </form>
+      </div>
     </aside>
   )
 }
