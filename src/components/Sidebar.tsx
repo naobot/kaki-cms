@@ -20,7 +20,7 @@ export default function Sidebar({ repoId, projectName, collections }: Props) {
   const pathname = usePathname()
 
   return (
-    <aside className="w-56 shrink-0 border-r min-h-screen p-4 flex flex-col gap-4">
+    <aside className="w-56 shrink-0 border-r min-h-screen max-h-screen p-4 flex flex-col gap-4">
       <Link href="/dashboard" className="font-semibold tracking-tight">
         Kaki CMS
       </Link>

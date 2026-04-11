@@ -42,7 +42,7 @@ export default async function ProjectLayout({
         projectName={project.display_name}
         collections={config.collections}
       />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 max-h-screen overflow-y-auto">
         {children}
       </div>
     </div>

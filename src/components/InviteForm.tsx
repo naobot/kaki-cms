@@ -35,7 +35,7 @@ export default function InviteForm({ repoId }: { repoId: string }) {
     <div className="mt-8 border rounded-md p-6">
       <h2 className="text-base font-semibold mb-4">Invite editor</h2>
       <div className="flex gap-2 items-end">
-        <div className="space-y-1 flex-1">
+        <div className="space-y-1 flex-1 gap-2 flex flex-col">
           <Label htmlFor="invite-email">Email address</Label>
           <Input
             id="invite-email"
