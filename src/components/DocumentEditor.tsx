@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
+import DeleteDocumentButton from '@/components/DeleteDocumentButton'
 
 type Props = {
   repoId: string
@@ -125,6 +126,20 @@ export default function DocumentEditor({
             />
           </div>
         </div>
+
+        {!isNew && filePath && document.sha && (
+          <>
+            <Separator />
+            <div className="flex justify-center mx-2">
+              <DeleteDocumentButton
+                repoId={repoId}
+                filePath={filePath}
+                sha={document.sha}
+                redirectTo={`/dashboard/${repoId}/${collection.name}`}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

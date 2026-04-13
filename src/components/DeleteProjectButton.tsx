@@ -9,6 +9,7 @@ export default function DeleteProjectButton({ repoId }: { repoId: string }) {
 
   async function handleDelete() {
     await fetch(`/api/repos/${repoId}`, { method: 'DELETE' })
+    setConfirming(false)
     router.refresh()
   }
 
@@ -26,7 +27,7 @@ export default function DeleteProjectButton({ repoId }: { repoId: string }) {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+    <Button variant="ghost" size="sm" onClick={() => setConfirming(true)}>
       Delete
     </Button>
   )

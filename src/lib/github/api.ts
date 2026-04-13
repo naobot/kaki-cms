@@ -69,3 +69,32 @@ export async function putFile(
 
   if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
 }
+
+export async function deleteFile({
+  repo,
+  filePath,
+  sha,
+  token,
+}: {
+  repo: string
+  filePath: string
+  sha: string
+  token: string
+}) {
+  const res = await fetch(
+    `https://api.github.com/repos/${repo}/contents/${filePath}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: `Delete ${filePath}`,
+        sha,
+      }),
+    }
+  )
+
+  if (!res.ok) throw new Error(`GitHub delete failed: ${res.status}`)
+}
