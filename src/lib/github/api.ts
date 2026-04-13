@@ -49,7 +49,7 @@ export async function getDirectoryWithMeta(
   token: string,
   repo: string,
   path: string
-): Promise<{ name: string; path: string; sha: string; downloadUrl: string }[]> {
+): Promise<{ name: string; path: string; sha: string; downloadUrl: string; type: 'file' | 'dir' }[]> {
   const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -65,6 +65,7 @@ export async function getDirectoryWithMeta(
     path: item.path,
     sha: item.sha,
     downloadUrl: item.download_url,
+    type: item.type as 'file' | 'dir',
   }))
 }
 
