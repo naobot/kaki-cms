@@ -47,6 +47,7 @@ export default async function EditPage({
   return (
     <DocumentEditor
       repoId={repoId}
+      githubRepo={project.github_repo}
       collection={collection}
       document={document}
       filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}

@@ -11,9 +11,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import DeleteDocumentButton from '@/components/DeleteDocumentButton'
+import { RepoProvider } from '@/lib/cms/context'
 
 type Props = {
   repoId: string
+  githubRepo: string
   collection: Collection
   document: ParsedDocument
   filePath: string | null
@@ -23,12 +25,14 @@ type Props = {
 
 export default function DocumentEditor({
   repoId,
+  githubRepo,
   collection,
   document,
   filePath,
   isNew,
   collectionPath,
 }: Props) {
+  const repoContext = { repoId, githubRepo }
   const router = useRouter()
   const [frontmatter, setFrontmatter] = useState<Record<string, unknown>>(document.frontmatter)
   const [body, setBody] = useState(document.body)
@@ -68,79 +72,81 @@ export default function DocumentEditor({
   }
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold">
-            {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
-          </h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button asChild variant="ghost">
-            <Link href={`/dashboard/${repoId}/${collection.name}`}>← Back</Link>
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || (isNew && !filename)}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-6">
-        {isNew && (
-          <div className="space-y-1">
-            <Label htmlFor="filename">Filename (no extension)</Label>
-            <div className="flex flex-col gap-4 pt-1">
-              <Input
-                id="filename"
-                value={filename}
-                onChange={e => setFilename(e.target.value)}
-                placeholder="my-new-document"
-                required
-              />
-            </div>
+    <RepoProvider value={repoContext}>
+      <div className="p-8 max-w-2xl">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-semibold">
+              {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
+            </h1>
           </div>
-        )}
+          <div className="flex items-center gap-4">
+            <Button asChild variant="ghost">
+              <Link href={`/dashboard/${repoId}/${collection.name}`}>← Back</Link>
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || (isNew && !filename)}
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
 
-        {collection.fields.map(field => (
-          <FieldRenderer
-            key={field.name}
-            field={field}
-            value={frontmatter[field.name]}
-            onChangeAction={value => updateField(field.name, value)}
-          />
-        ))}
+        <div className="flex flex-col gap-6">
+          {isNew && (
+            <div className="space-y-1">
+              <Label htmlFor="filename">Filename (no extension)</Label>
+              <div className="flex flex-col gap-4 pt-1">
+                <Input
+                  id="filename"
+                  value={filename}
+                  onChange={e => setFilename(e.target.value)}
+                  placeholder="my-new-document"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
-        <Separator />
-
-        <div className="space-y-1">
-          <Label>Page Content</Label>
-          <div className="flex flex-col gap-4 pt-1">
-            <Textarea
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              className="min-h-64 font-mono text-sm"
-              placeholder="Write your markdown content here..."
+          {collection.fields.map(field => (
+            <FieldRenderer
+              key={field.name}
+              field={field}
+              value={frontmatter[field.name]}
+              onChangeAction={value => updateField(field.name, value)}
             />
-          </div>
-        </div>
+          ))}
 
-        {!isNew && filePath && document.sha && (
-          <>
-            <Separator />
-            <div className="flex justify-center mx-2">
-              <DeleteDocumentButton
-                repoId={repoId}
-                filePath={filePath}
-                sha={document.sha}
-                redirectTo={`/dashboard/${repoId}/${collection.name}`}
+          <Separator />
+
+          <div className="space-y-1">
+            <Label>Page Content</Label>
+            <div className="flex flex-col gap-4 pt-1">
+              <Textarea
+                value={body}
+                onChange={e => setBody(e.target.value)}
+                className="min-h-64 font-mono text-sm"
+                placeholder="Write your markdown content here..."
               />
             </div>
-          </>
-        )}
+          </div>
+
+          {!isNew && filePath && document.sha && (
+            <>
+              <Separator />
+              <div className="flex justify-center mx-2">
+                <DeleteDocumentButton
+                  repoId={repoId}
+                  filePath={filePath}
+                  sha={document.sha}
+                  redirectTo={`/dashboard/${repoId}/${collection.name}`}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </RepoProvider>
   )
 }
