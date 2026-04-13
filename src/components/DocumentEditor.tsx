@@ -76,7 +76,7 @@ export default function DocumentEditor({
         </div>
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost">
-            <Link href={`/dashboard/${repoId}`}>← Back</Link>
+            <Link href={`/dashboard/${repoId}/${collection.name}`}>← Back</Link>
           </Button>
           <Button
             onClick={handleSave}
