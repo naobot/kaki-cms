@@ -45,6 +45,29 @@ export async function getDirectory(
   }))
 }
 
+export async function getDirectoryWithMeta(
+  token: string,
+  repo: string,
+  path: string
+): Promise<{ name: string; path: string; sha: string; downloadUrl: string }[]> {
+  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+    },
+  })
+
+  if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
+
+  const data = await response.json()
+  return data.map((item: any) => ({
+    name: item.name,
+    path: item.path,
+    sha: item.sha,
+    downloadUrl: item.download_url,
+  }))
+}
+
 export async function putFile(
   token: string,
   repo: string,
@@ -64,6 +87,29 @@ export async function putFile(
       message,
       content: Buffer.from(content).toString('base64'),
       ...(sha ? { sha } : {}),
+    }),
+  })
+
+  if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
+}
+
+export async function putFileBinary(
+  token: string,
+  repo: string,
+  path: string,
+  buffer: Buffer,
+  message: string
+): Promise<void> {
+  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      content: buffer.toString('base64'),
     }),
   })
 
