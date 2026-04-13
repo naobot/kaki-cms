@@ -4,7 +4,7 @@ import type { CMSConfig } from './types'
 export async function fetchConfig(
   token: string,
   repo: string,
-  configPath: string
+  configPath: string = 'cms.config.json'
 ): Promise<CMSConfig> {
   const { content } = await getFile(token, repo, configPath)
 

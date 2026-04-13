@@ -25,4 +25,5 @@ export type Collection = {
 
 export type CMSConfig = {
   collections: Collection[]
+  assets_path?: string
 }
