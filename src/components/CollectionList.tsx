@@ -143,7 +143,7 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
       {orderable && (
         <div className="flex items-center gap-2 mb-4">
           <Button variant="outline" size="sm" onClick={sortByName}>Sort by name</Button>
-          <Button variant="outline" size="sm" onClick={sortByDate} disabled>Sort by date</Button>
+          {/*<Button variant="outline" size="sm" onClick={sortByDate} disabled>Sort by date</Button>*/}
           <Button
             size="sm"
             disabled={!isDirty || isSaving}
