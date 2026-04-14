@@ -6,7 +6,9 @@ export async function fetchConfig(
   repo: string,
   configPath: string = 'cms.config.json'
 ): Promise<CMSConfig> {
-  const { content } = await getFile(token, repo, configPath)
+  const file = await getFile(token, repo, configPath)
+  if (!file) throw new Error(`Config file not found at ${configPath}`)
+  const { content } = file
 
   let parsed: unknown
   try {

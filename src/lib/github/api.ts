@@ -2,9 +2,9 @@ const GITHUB_API = 'https://api.github.com'
 
 export async function getFile(
   token: string,
-  repo: string,        // "owner/repo-name"
-  path: string         // "cms.config.json"
-): Promise<{ content: string; sha: string }> {
+  repo: string,
+  path: string
+): Promise<{ content: string; sha: string } | null> {
   const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -12,13 +12,13 @@ export async function getFile(
     },
   })
 
+  if (response.status === 404) return null
+
   if (!response.ok) {
     throw new Error(`GitHub API error: ${response.status}`)
   }
 
   const data = await response.json()
-
-  // GitHub returns file contents as base64
   const content = Buffer.from(data.content, 'base64').toString('utf-8')
   return { content, sha: data.sha }
 }

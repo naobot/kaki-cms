@@ -42,7 +42,10 @@ export default async function EditPage({
   const document = isNew
     ? { frontmatter: {}, body: '', sha: '' }
     : await getFile(tokenRow!.access_token, project.github_repo, `${collection.path}/${slug.join('/')}.md`)
-        .then(({ content, sha }) => parseDocument(content, sha))
+        .then(file => {
+          if (!file) throw new Error(`Document not found: ${slug.join('/')}`)
+          return parseDocument(file.content, file.sha)
+        })
 
   return (
     <DocumentEditor
