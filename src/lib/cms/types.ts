@@ -21,6 +21,7 @@ export type Collection = {
   label: string
   path: string
   fields: Field[]
+  orderable?: boolean
 }
 
 export type CMSConfig = {
