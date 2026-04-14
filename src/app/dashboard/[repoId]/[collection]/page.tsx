@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchConfig } from '@/lib/cms/config'
-import { getDirectory } from '@/lib/github/api'
+import { getDirectory, getFile } from '@/lib/github/api'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import CollectionList from '@/components/CollectionList'
 
 export default async function CollectionPage({
   params,
@@ -44,7 +45,14 @@ export default async function CollectionPage({
     collectionConfig.path
   )
 
-  const documents = files.filter(f => f.type === 'file' && f.name.endsWith('.md'))
+  const documents = files
+    .filter(f => f.type === 'file' && f.name.endsWith('.md'))
+    .map(f => ({ name: f.name, path: f.path, slug: f.name.replace('.md', '') }))
+
+  const orderManifest = collectionConfig.orderable
+    ? await getFile(tokenRow!.access_token, repo.github_repo, `${collectionConfig.path}/_order.json`)
+        .then(file => file ? JSON.parse(file.content) as string[] : null)
+    : null
 
   return (
     <div className="p-8">
@@ -66,31 +74,15 @@ export default async function CollectionPage({
           </Button>
         </div>
       </div>
-      {documents.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <p className="mb-4">No documents yet</p>
-          <Button asChild variant="outline">
-            <Link href={`/dashboard/${repoId}/${collection}/new`}>
-              Create your first document
-            </Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="border rounded-md divide-y">
-          {documents.map(doc => (
-            <Link
-              key={doc.path}
-              href={`/dashboard/${repoId}/${collection}/${doc.name.replace('.md', '')}`}
-              className="flex items-center justify-between px-4 py-3 hover:bg-accent transition-colors"
-            >
-              <span className="text-sm font-medium">
-                {doc.name.replace('.md', '')}
-              </span>
-              <span className="text-xs text-muted-foreground">Edit →</span>
-            </Link>
-          ))}
-        </div>
-      )}
+
+      <CollectionList
+        repoId={repoId}
+        collection={collection}
+        collectionPath={collectionConfig.path}
+        documents={documents}
+        orderManifest={orderManifest}
+        orderable={collectionConfig.orderable ?? false}
+      />
     </div>
   )
 }
