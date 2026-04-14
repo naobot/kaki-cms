@@ -43,6 +43,7 @@ export default async function ProjectLayout({
         repoId={repoId}
         projectName={project.display_name}
         collections={config.collections}
+        singletons={config.singletons}
         userType={userType}
       />
       <div className="flex-1 max-h-screen overflow-y-auto">

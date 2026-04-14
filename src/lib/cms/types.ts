@@ -24,7 +24,16 @@ export type Collection = {
   orderable?: boolean
 }
 
+export type Singleton = {
+  name: string
+  label: string
+  path: string
+  layout?: string
+  fields: Field[]
+}
+
 export type CMSConfig = {
   collections: Collection[]
+  singletons?: Singleton[]
   assets_path?: string
 }

@@ -10,14 +10,21 @@ type Collection = {
   label: string
 }
 
+type Singleton = {
+  name: string
+  label: string
+  fields: { name: string }[]
+}
+
 type Props = {
   repoId?: string
   projectName?: string
   collections?: Collection[]
+  singletons?: Singleton[]
   userType?: 'developer' | 'editor'
 }
 
-export default function Sidebar({ repoId, projectName, collections, userType }: Props) {
+export default function Sidebar({ repoId, projectName, collections, singletons, userType }: Props) {
   const pathname = usePathname()
 
   return (
@@ -28,30 +35,55 @@ export default function Sidebar({ repoId, projectName, collections, userType }: 
       <Separator />
       {repoId && projectName && (
         <>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-              {projectName}
-            </p>
-            <nav className="flex flex-col gap-1">
-              {(collections ?? []).map(collection => (
-                <Link
-                  key={collection.name}
-                  href={`/dashboard/${repoId}/${collection.name}`}
-                  className={`text-sm px-2 py-1 rounded-md hover:bg-accent transition-colors ${
-                    pathname.includes(`/${collection.name}`)
-                      ? 'bg-accent font-medium'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {collection.label}
-                </Link>
-              ))}
-            </nav>
+          <div className="flex flex-col gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                {projectName}
+              </p>
+              <nav className="flex flex-col gap-1">
+                {(collections ?? []).map(collection => (
+                  <Link
+                    key={collection.name}
+                    href={`/dashboard/${repoId}/${collection.name}`}
+                    className={`text-sm px-2 py-1 rounded-md hover:bg-accent transition-colors ${
+                      pathname.includes(`/${collection.name}`)
+                        ? 'bg-accent font-medium'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    {collection.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {singletons && singletons.length > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Pages
+                </p>
+                <nav className="flex flex-col gap-1">
+                  {singletons.map(singleton => (
+                    <Link
+                      key={singleton.name}
+                      href={`/dashboard/${repoId}/singleton/${singleton.name}`}
+                      className={`text-sm px-2 py-1 rounded-md hover:bg-accent transition-colors ${
+                        pathname.includes(`/singleton/${singleton.name}`)
+                          ? 'bg-accent font-medium'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      {singleton.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            )}
           </div>
           <Separator />
         </>
       )}
-      <div className='flex flex-col gap-4 mt-auto'>
+      <div className="flex flex-col gap-4 mt-auto">
         {userType === 'developer' && (
           <Link
             href="/dashboard"
@@ -59,12 +91,9 @@ export default function Sidebar({ repoId, projectName, collections, userType }: 
           >
             ← All repos
           </Link>
-          )}
+        )}
         <form action={signOut} className="mt-auto">
-          <Button
-            type="submit"
-            className="text-sm w-full"
-          >
+          <Button type="submit" className="text-sm w-full">
             Sign out
           </Button>
         </form>
