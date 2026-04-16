@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Eye, EyeOff } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -28,14 +29,26 @@ type Document = {
   slug: string
 }
 
-function SortableItem({ doc, repoId, collection, isDraggable }: {
+type DocumentMeta = {
+  published: boolean
+  sha: string | null
+  body: string
+  frontmatter: Record<string, unknown>
+}
+
+function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta, onTogglePublished }: {
   doc: Document
   repoId: string
   collection: string
   isDraggable: boolean
+  publishable: boolean
+  meta: DocumentMeta | undefined
+  onTogglePublished: (slug: string) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: doc.slug })
+
+  const isPublished = meta?.published ?? true
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -60,11 +73,20 @@ function SortableItem({ doc, repoId, collection, isDraggable }: {
       )}
       <Link
         href={`/dashboard/${repoId}/${collection}/${doc.slug}`}
-        className="flex flex-1 items-center justify-between px-4 py-3 hover:bg-accent transition-colors"
+        className={`flex flex-1 items-center justify-between px-4 py-3 hover:bg-accent transition-colors ${!isPublished ? 'opacity-50' : ''}`}
       >
         <span className="text-sm font-medium">{doc.slug}</span>
         <span className="text-xs text-muted-foreground">Edit →</span>
       </Link>
+      {publishable && (
+        <button
+          className="px-3 py-3 text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => onTogglePublished(doc.slug)}
+          title={isPublished ? 'Unpublish' : 'Publish'}
+        >
+          {isPublished ? <Eye size={16} /> : <EyeOff size={16} />}
+        </button>
+      )}
     </div>
   )
 }
@@ -77,15 +99,18 @@ function applyManifest(documents: Document[], orderManifest: string[] | null): D
   return [...ordered, ...unrecognised]
 }
 
-export default function CollectionList({ repoId, collection, collectionPath, documents, orderManifest, orderable }: {
+export default function CollectionList({ repoId, collection, collectionPath, documents, orderManifest, orderable, publishable, documentMeta }: {
   repoId: string
   collection: string
   collectionPath: string
   documents: Document[]
   orderManifest: string[] | null
   orderable: boolean
+  publishable: boolean
+  documentMeta: Record<string, DocumentMeta>
 }) {
   const [items, setItems] = useState<Document[]>(() => applyManifest(documents, orderManifest))
+  const [meta, setMeta] = useState<Record<string, DocumentMeta>>(documentMeta)
   const [isDirty, setIsDirty] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -110,20 +135,48 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
     setIsDirty(true)
   }, [])
 
-  const sortByDate = useCallback(() => {
-    // GitHub API doesn't return creation date in directory listings,
-    // so this sorts by filename assuming a date prefix convention (e.g. 2024-01-15-my-post)
-    // TODO: revisit if we store creation metadata elsewhere
-    setItems(prev => [...prev].sort((a, b) => a.slug.localeCompare(b.slug)))
-    setIsDirty(true)
-  }, [])
-
   const handleConfirm = useCallback(async () => {
     setIsSaving(true)
     await saveOrder(repoId, collectionPath, items.map(d => d.slug))
     setIsDirty(false)
     setIsSaving(false)
   }, [repoId, collectionPath, items])
+
+  const handleTogglePublished = useCallback(async (slug: string) => {
+    const current = meta[slug]
+    if (!current || !current.sha) return
+
+    const newPublished = !current.published
+
+    // Optimistic update
+    setMeta(prev => ({
+      ...prev,
+      [slug]: { ...prev[slug], published: newPublished },
+    }))
+
+    const doc = items.find(d => d.slug === slug)
+    if (!doc) return
+
+    const response = await fetch(`/api/repos/${repoId}/content`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        frontmatter: { ...current.frontmatter, published: newPublished },
+        body: current.body,
+        sha: current.sha,
+        filePath: doc.path,
+        isNew: false,
+      }),
+    })
+
+    if (!response.ok) {
+      // Revert on failure
+      setMeta(prev => ({
+        ...prev,
+        [slug]: { ...prev[slug], published: current.published },
+      }))
+    }
+  }, [repoId, items, meta])
 
   if (documents.length === 0) {
     return (
@@ -138,12 +191,28 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
     )
   }
 
+  const itemList = (
+    <div className="border rounded-md">
+      {items.map(doc => (
+        <SortableItem
+          key={doc.slug}
+          doc={doc}
+          repoId={repoId}
+          collection={collection}
+          isDraggable={orderable}
+          publishable={publishable}
+          meta={meta[doc.slug]}
+          onTogglePublished={handleTogglePublished}
+        />
+      ))}
+    </div>
+  )
+
   return (
     <div>
       {orderable && (
         <div className="flex items-center gap-2 mb-4">
           <Button variant="outline" size="sm" onClick={sortByName}>Sort by name</Button>
-          {/*<Button variant="outline" size="sm" onClick={sortByDate} disabled>Sort by date</Button>*/}
           <Button
             size="sm"
             disabled={!isDirty || isSaving}
@@ -157,31 +226,11 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
       {orderable ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map(d => d.slug)} strategy={verticalListSortingStrategy}>
-            <div className="border rounded-md divide-y">
-              {items.map(doc => (
-                <SortableItem
-                  key={doc.slug}
-                  doc={doc}
-                  repoId={repoId}
-                  collection={collection}
-                  isDraggable={true}
-                />
-              ))}
-            </div>
+            {itemList}
           </SortableContext>
         </DndContext>
       ) : (
-        <div className="border rounded-md divide-y">
-          {items.map(doc => (
-            <SortableItem
-              key={doc.slug}
-              doc={doc}
-              repoId={repoId}
-              collection={collection}
-              isDraggable={false}
-            />
-          ))}
-        </div>
+        itemList
       )}
     </div>
   )

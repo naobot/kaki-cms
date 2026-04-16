@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { fetchConfig } from '@/lib/cms/config'
 import { getDirectory, getFile } from '@/lib/github/api'
+import { parseDocument } from '@/lib/cms/parser'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -54,6 +55,23 @@ export default async function CollectionPage({
         .then(file => file ? JSON.parse(file.content) as string[] : null)
     : null
 
+  const documentMeta = collectionConfig.publishable
+    ? Object.fromEntries(
+        await Promise.all(
+          documents.map(async doc => {
+            const file = await getFile(tokenRow!.access_token, repo.github_repo, doc.path)
+            const parsed = file ? parseDocument(file.content, file.sha) : null
+            return [doc.slug, {
+              published: parsed ? (parsed.frontmatter.published ?? true) : true,
+              sha: parsed?.sha ?? null,
+              body: parsed?.body ?? '',
+              frontmatter: parsed?.frontmatter ?? {},
+            }]
+          })
+        )
+      )
+    : {}
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
@@ -82,6 +100,8 @@ export default async function CollectionPage({
         documents={documents}
         orderManifest={orderManifest}
         orderable={collectionConfig.orderable ?? false}
+        publishable={collectionConfig.publishable ?? false}
+        documentMeta={documentMeta}
       />
     </div>
   )
