@@ -22,6 +22,7 @@ export type Collection = {
   path: string
   fields: Field[]
   orderable?: boolean
+  publishable?: boolean
 }
 
 export type Singleton = {

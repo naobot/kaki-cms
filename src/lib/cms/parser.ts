@@ -1,5 +1,4 @@
 import matter from 'gray-matter'
-import type { Collection } from './types'
 
 export type ParsedDocument = {
   frontmatter: Record<string, unknown>
