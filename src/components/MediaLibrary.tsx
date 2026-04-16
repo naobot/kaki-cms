@@ -7,10 +7,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
 
 type Asset = {
   name: string
   path: string
+  sha: string
   downloadUrl: string
 }
 
@@ -25,6 +27,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
   const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -51,15 +54,27 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
 
     const { path } = await res.json()
 
-    // refresh the asset list and select the newly uploaded file immediately
     const refreshed = await fetch(`/api/repos/${repoId}/assets`).then(r => r.json())
     setAssets(refreshed)
     setUploading(false)
 
-    // reset input so the same file can be re-uploaded if needed
     if (fileInputRef.current) fileInputRef.current.value = ''
 
     onSelectAction(path)
+  }
+
+  async function handleDelete(e: React.MouseEvent, asset: Asset) {
+    e.stopPropagation()
+    setDeleting(prev => ({ ...prev, [asset.path]: true }))
+
+    await fetch(`/api/repos/${repoId}/assets`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath: asset.path, sha: asset.sha }),
+    })
+
+    setAssets(prev => prev.filter(a => a.path !== asset.path))
+    setDeleting(prev => ({ ...prev, [asset.path]: false }))
   }
 
   return (
@@ -92,12 +107,12 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
         ) : assets.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">No images yet</p>
         ) : (
-          <div className="grid grid-cols-3 gap-3 overflow-y-auto max-h-[60vh]">
+          <div className="grid grid-cols-3 gap-3 max-h-[60vh]">
             {assets.map(asset => (
               <button
                 key={asset.path}
                 onClick={() => onSelectAction(asset.path)}
-                className="group relative aspect-square overflow-hidden rounded border bg-muted hover:border-primary transition-colors"
+                className="group relative aspect-square rounded border bg-muted hover:border-primary transition-colors cursor-pointer"
               >
                 <img
                   src={asset.downloadUrl}
@@ -106,6 +121,13 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">
                   {asset.name}
+                </div>
+                <div
+                  role="button"
+                  onClick={e => handleDelete(e, asset)}
+                  className={`absolute -top-2 -right-2 rounded-full bg-background border shadow-sm p-0.5 text-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-white hover:border-destructive ${deleting[asset.path] ? 'pointer-events-none opacity-50' : ''}`}
+                >
+                  <X size={12} />
                 </div>
               </button>
             ))}

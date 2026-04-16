@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getDirectoryWithMeta, putFileBinary } from '@/lib/github/api'
+import { getDirectoryWithMeta, putFileBinary, deleteFile } from '@/lib/github/api'
 import { fetchConfig } from '@/lib/cms/config'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -47,6 +47,7 @@ export async function GET(
     .map(f => ({
       name: f.name,
       path: '/' + f.path.replace(/^public\//, ''),
+      sha: f.sha,
       downloadUrl: f.downloadUrl,
     }))
 
@@ -86,4 +87,28 @@ export async function POST(
   const storedPath = '/' + filePath.replace(/^public\//, '')
 
   return NextResponse.json({ path: storedPath })
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { repo, token } = await getRepoAndToken(supabase, id)
+  if (!repo) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
+
+  const { filePath, sha } = await request.json()
+
+  // filePath arrives as a public URL path e.g. /assets/uploads/foo.png
+  // so we need to reconstruct the full repo path
+  const repoFilePath = 'public' + filePath
+
+  await deleteFile({ repo: repo.github_repo, filePath: repoFilePath, sha, token })
+
+  return new Response(null, { status: 200 })
 }
