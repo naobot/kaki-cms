@@ -44,6 +44,7 @@ export default async function ProjectLayout({
         projectName={project.display_name}
         collections={config.collections}
         singletons={config.singletons}
+        hasSettings={!!(config.data_files && config.data_files.length > 0)}
         userType={userType}
       />
       <div className="flex-1 max-h-screen overflow-y-auto">

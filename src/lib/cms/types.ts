@@ -12,8 +12,9 @@ export type Field = {
   label: string
   type: FieldType
   required?: boolean
-  options?: string[]   // for multiselect
-  fields?: Field[]     // for list-of-objects, recursive
+  options?: string[]    // for multiselect (static)
+  data_file?: string    // for multiselect (dynamic, overrides options)
+  fields?: Field[]      // for list-of-objects, recursive
 }
 
 export type Collection = {
@@ -33,8 +34,15 @@ export type Singleton = {
   fields: Field[]
 }
 
+export type DataFile = {
+  path: string
+  label: string
+}
+
 export type CMSConfig = {
   collections: Collection[]
   singletons?: Singleton[]
   assets_path?: string
+  data_path?: string
+  data_files?: DataFile[]
 }

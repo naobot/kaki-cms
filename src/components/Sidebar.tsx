@@ -21,10 +21,11 @@ type Props = {
   projectName?: string
   collections?: Collection[]
   singletons?: Singleton[]
+  hasSettings?: boolean
   userType?: 'developer' | 'editor'
 }
 
-export default function Sidebar({ repoId, projectName, collections, singletons, userType }: Props) {
+export default function Sidebar({ repoId, projectName, collections, singletons, hasSettings, userType }: Props) {
   const pathname = usePathname()
 
   return (
@@ -76,6 +77,26 @@ export default function Sidebar({ repoId, projectName, collections, singletons, 
                       {singleton.label}
                     </Link>
                   ))}
+                </nav>
+              </div>
+            )}
+
+            {hasSettings && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                  Settings
+                </p>
+                <nav className="flex flex-col gap-1">
+                  <Link
+                    href={`/dashboard/${repoId}/settings`}
+                    className={`text-sm px-2 py-1 rounded-md hover:bg-accent transition-colors ${
+                      pathname === `/dashboard/${repoId}/settings`
+                        ? 'bg-accent font-medium'
+                        : 'text-muted-foreground'
+                    }`}
+                  >
+                    Site data
+                  </Link>
                 </nav>
               </div>
             )}
