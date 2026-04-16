@@ -51,9 +51,9 @@ export default function ImageField({ field, value, onChangeAction }: Props) {
 
       <MediaLibrary
         open={open}
-        onOpenChange={setOpen}
+        onOpenChangeAction={setOpen}
         repoId={repoId}
-        onSelect={path => {
+        onSelectAction={path => {
           onChangeAction(path)
           setOpen(false)
         }}

@@ -16,12 +16,12 @@ type Asset = {
 
 type Props = {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   repoId: string
-  onSelect: (path: string) => void
+  onSelectAction: (path: string) => void
 }
 
-export default function MediaLibrary({ open, onOpenChange, repoId, onSelect }: Props) {
+export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelectAction }: Props) {
   const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -59,11 +59,11 @@ export default function MediaLibrary({ open, onOpenChange, repoId, onSelect }: P
     // reset input so the same file can be re-uploaded if needed
     if (fileInputRef.current) fileInputRef.current.value = ''
 
-    onSelect(path)
+    onSelectAction(path)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Media library</DialogTitle>
@@ -96,7 +96,7 @@ export default function MediaLibrary({ open, onOpenChange, repoId, onSelect }: P
             {assets.map(asset => (
               <button
                 key={asset.path}
-                onClick={() => onSelect(asset.path)}
+                onClick={() => onSelectAction(asset.path)}
                 className="group relative aspect-square overflow-hidden rounded border bg-muted hover:border-primary transition-colors"
               >
                 <img
