@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function AuthConfirmPage() {
   const router = useRouter()
@@ -41,5 +42,16 @@ export default function AuthConfirmPage() {
       })
   }, [router])
 
-  return <p>Confirming your invitation…</p>
+  return (
+    <main className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-sm flex flex-col gap-4">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle>Kaki CMS</CardTitle>
+            <CardDescription>Confirming your registration...</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    </main>
+  )
 }
