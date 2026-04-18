@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import Link from 'next/link'
 import DeleteDocumentButton from '@/components/DeleteDocumentButton'
-import { RepoProvider } from '@/lib/cms/context'
 
 type Props = {
   repoId: string
@@ -43,7 +42,6 @@ export default function DocumentEditor({
   isNew,
   collectionPath,
 }: Props) {
-  const repoContext = { repoId, githubRepo }
   const router = useRouter()
   const [frontmatter, setFrontmatter] = useState<Record<string, unknown>>(() => {
     if (collection.publishable && document.frontmatter.published === undefined) {
@@ -111,7 +109,7 @@ export default function DocumentEditor({
   }
 
   return (
-    <RepoProvider value={repoContext}>
+    <>
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -223,6 +221,6 @@ export default function DocumentEditor({
           )}
         </div>
       </div>
-    </RepoProvider>
+    </>
   )
 }

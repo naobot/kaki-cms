@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { fetchConfig } from '@/lib/cms/config'
 import { getFile } from '@/lib/github/api'
 import { parseDocument } from '@/lib/cms/parser'
@@ -17,23 +18,28 @@ export default async function EditPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: project } = await supabase
+  const serviceSupabase = createServiceClient()
+
+  const { data: repo } = await serviceSupabase
     .from('repos')
     .select()
     .eq('id', repoId)
     .single()
 
-  if (!project) redirect('/dashboard')
+  if (!repo) redirect('/dashboard')
 
-  const { data: tokenRow } = await supabase
+  const { data: tokenRow } = await serviceSupabase
     .from('github_tokens')
     .select('access_token')
+    .eq('user_id', repo.owner_id)
     .single()
 
+  if (!tokenRow) redirect('/dashboard')
+
   const config = await fetchConfig(
-    tokenRow!.access_token,
-    project.github_repo,
-    project.config_path
+    tokenRow.access_token,
+    repo.github_repo,
+    repo.config_path
   )
 
   const collection = config.collections.find(c => c.name === collectionName)
@@ -41,7 +47,7 @@ export default async function EditPage({
 
   const document = isNew
     ? { frontmatter: {}, body: '', sha: '' }
-    : await getFile(tokenRow!.access_token, project.github_repo, `${collection.path}/${slug.join('/')}.md`)
+    : await getFile(tokenRow.access_token, repo.github_repo, `${collection.path}/${slug.join('/')}.md`)
         .then(file => {
           if (!file) throw new Error(`Document not found: ${slug.join('/')}`)
           return parseDocument(file.content, file.sha)
@@ -50,7 +56,7 @@ export default async function EditPage({
   return (
     <DocumentEditor
       repoId={repoId}
-      githubRepo={project.github_repo}
+      githubRepo={repo.github_repo}
       collection={collection}
       document={document}
       filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}

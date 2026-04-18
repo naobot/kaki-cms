@@ -44,6 +44,8 @@ export default async function RepoLayout({
     repo.config_path
   )
 
+  console.log('RepoProvider value:', { repo, accessToken: !!tokenRow?.access_token, userType })
+
   return (
     <div className="flex min-h-screen">
       <Sidebar

@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
-import { RepoProvider } from '@/lib/cms/context'
 
 type Props = {
   repoId: string
@@ -27,7 +26,6 @@ export default function SingletonEditor({
   document,
   filePath,
 }: Props) {
-  const repoContext = { repoId, githubRepo }
   const router = useRouter()
   const [frontmatter, setFrontmatter] = useState<Record<string, unknown>>(document.frontmatter)
   const [body, setBody] = useState(document.body)
@@ -57,7 +55,7 @@ export default function SingletonEditor({
   }
 
   return (
-    <RepoProvider value={repoContext}>
+    <>
       <div className="p-8 max-w-2xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-semibold">Edit {singleton.label}</h1>
@@ -96,6 +94,6 @@ export default function SingletonEditor({
           </div>
         </div>
       </div>
-    </RepoProvider>
+    </>
   )
 }

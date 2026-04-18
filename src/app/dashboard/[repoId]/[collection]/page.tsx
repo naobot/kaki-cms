@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { fetchConfig } from '@/lib/cms/config'
 import { getDirectory, getFile } from '@/lib/github/api'
 import { parseDocument } from '@/lib/cms/parser'
@@ -18,7 +19,9 @@ export default async function CollectionPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: repo } = await supabase
+  const serviceSupabase = createServiceClient()
+
+  const { data: repo } = await serviceSupabase
     .from('repos')
     .select()
     .eq('id', repoId)
@@ -26,13 +29,16 @@ export default async function CollectionPage({
 
   if (!repo) redirect('/dashboard')
 
-  const { data: tokenRow } = await supabase
+  const { data: tokenRow } = await serviceSupabase
     .from('github_tokens')
     .select('access_token')
+    .eq('user_id', repo.owner_id)
     .single()
 
+  if (!tokenRow) redirect('/dashboard')
+
   const config = await fetchConfig(
-    tokenRow!.access_token,
+    tokenRow.access_token,
     repo.github_repo,
     repo.config_path
   )
@@ -41,7 +47,7 @@ export default async function CollectionPage({
   if (!collectionConfig) redirect(`/dashboard/${repoId}`)
 
   const files = await getDirectory(
-    tokenRow!.access_token,
+    tokenRow.access_token,
     repo.github_repo,
     collectionConfig.path
   )
@@ -51,7 +57,7 @@ export default async function CollectionPage({
     .map(f => ({ name: f.name, path: f.path, slug: f.name.replace('.md', '') }))
 
   const orderManifest = collectionConfig.orderable
-    ? await getFile(tokenRow!.access_token, repo.github_repo, `${collectionConfig.path}/_order.json`)
+    ? await getFile(tokenRow.access_token, repo.github_repo, `${collectionConfig.path}/_order.json`)
         .then(file => file ? JSON.parse(file.content) as string[] : null)
     : null
 
@@ -59,7 +65,7 @@ export default async function CollectionPage({
     ? Object.fromEntries(
         await Promise.all(
           documents.map(async doc => {
-            const file = await getFile(tokenRow!.access_token, repo.github_repo, doc.path)
+            const file = await getFile(tokenRow.access_token, repo.github_repo, doc.path)
             const parsed = file ? parseDocument(file.content, file.sha) : null
             return [doc.slug, {
               published: parsed ? (parsed.frontmatter.published ?? true) : true,

@@ -18,6 +18,7 @@ import { useRepo } from '@/lib/cms/context'
 export default function MultiselectField({ field, value, onChangeAction }: FieldProps<string[]>) {
   const selected = value ?? []
   const { repo } = useRepo()
+  console.log('MultiselectField repo:', repo)
 
   const [options, setOptions] = useState<string[]>(field.options ?? [])
   const [sha, setSha] = useState<string | null>(null)
