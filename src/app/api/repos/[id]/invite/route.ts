@@ -77,5 +77,10 @@ export async function POST(
     user_id: editorUserId,
   })
 
+  await admin.from('profiles').upsert({
+    user_id: editorUserId,
+    password_set: false,
+  })
+
   return NextResponse.json({ success: true })
 }

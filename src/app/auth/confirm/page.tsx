@@ -36,7 +36,7 @@ export default function AuthConfirmPage() {
         if (error || !data.session) {
           router.replace('/login?error=invalid_invite')
         } else {
-          router.replace('/dashboard')
+          router.replace('/auth/set-password')
         }
       })
   }, [router])
