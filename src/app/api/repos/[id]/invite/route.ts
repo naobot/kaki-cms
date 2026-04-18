@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createServiceClient } from '@/lib/supabase/service'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
 ) {
   const { id: repoId } = await params
   const supabase = await createClient()
-  const admin = createAdminClient()
+  const admin = createServiceClient()
 
   // Verify the requester is authenticated and owns this repo
   const { data: { user } } = await supabase.auth.getUser()
