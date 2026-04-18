@@ -14,13 +14,13 @@ type Props = {
 }
 
 export default function ImageField({ field, value, onChangeAction }: Props) {
-  const { repoId, githubRepo } = useRepo()
+  const { repo } = useRepo()
   const [open, setOpen] = useState(false)
 
   const currentPath = typeof value === 'string' ? value : ''
 
   const previewUrl = currentPath
-    ? `https://raw.githubusercontent.com/${githubRepo}/HEAD/public${currentPath}`
+    ? `https://raw.githubusercontent.com/${repo.github_repo}/HEAD/public${currentPath}`
     : null
 
   return (
@@ -52,7 +52,7 @@ export default function ImageField({ field, value, onChangeAction }: Props) {
       <MediaLibrary
         open={open}
         onOpenChangeAction={setOpen}
-        repoId={repoId}
+        repoId={repo.id}
         onSelectAction={path => {
           onChangeAction(path)
           setOpen(false)

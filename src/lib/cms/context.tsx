@@ -1,8 +1,22 @@
-import { createContext, useContext } from 'react'
+'use client'
 
-type RepoContextValue = {
-  repoId: string
-  githubRepo: string
+import { createContext, useContext } from 'react'
+import type { CMSConfig } from './types'
+
+export type RepoRow = {
+  id: string
+  owner_id: string
+  display_name: string
+  github_repo: string
+  config_path: string
+  created_at: string
+}
+
+export type RepoContextValue = {
+  repo: RepoRow
+  config: CMSConfig
+  accessToken: string
+  userType: 'developer' | 'editor'
 }
 
 const RepoContext = createContext<RepoContextValue | null>(null)

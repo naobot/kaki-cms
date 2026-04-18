@@ -17,7 +17,7 @@ import { useRepo } from '@/lib/cms/context'
 
 export default function MultiselectField({ field, value, onChangeAction }: FieldProps<string[]>) {
   const selected = value ?? []
-  const { repoId } = useRepo()
+  const { repo } = useRepo()
 
   const [options, setOptions] = useState<string[]>(field.options ?? [])
   const [sha, setSha] = useState<string | null>(null)
@@ -29,13 +29,13 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
   // Fetch options from data_file if declared
   useEffect(() => {
     if (!field.data_file) return
-    fetch(`/api/repos/${repoId}/data/${field.data_file}`)
+    fetch(`/api/repos/${repo.id}/data/${field.data_file}`)
       .then(res => res.json())
       .then(({ items, sha }) => {
         setOptions(items)
         setSha(sha)
       })
-  }, [repoId, field.data_file])
+  }, [repo.id, field.data_file])
 
   function toggle(option: string) {
     if (selected.includes(option)) {
@@ -66,7 +66,7 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
     if (!field.data_file) return
     setSaving(true)
 
-    const response = await fetch(`/api/repos/${repoId}/data/${field.data_file}`, {
+    const response = await fetch(`/api/repos/${repo.id}/data/${field.data_file}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: managedItems, sha }),
@@ -83,7 +83,7 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
 
     setSaving(false)
     setManageOpen(false)
-  }, [repoId, field.data_file, managedItems, sha, selected, onChangeAction])
+  }, [repo.id, field.data_file, managedItems, sha, selected, onChangeAction])
 
   return (
     <div className="space-y-1">

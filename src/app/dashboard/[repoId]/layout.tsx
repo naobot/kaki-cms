@@ -1,10 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { fetchConfig } from '@/lib/cms/config'
+import { getUserType } from '@/lib/cms/user'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
-import { getUserType } from '@/lib/cms/user'
+import { RepoProvider } from '@/lib/cms/context'
 
-export default async function ProjectLayout({
+export default async function RepoLayout({
   children,
   params,
 }: {
@@ -13,43 +15,50 @@ export default async function ProjectLayout({
 }) {
   const { repoId } = await params
   const supabase = await createClient()
-  const userType = await getUserType()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: project } = await supabase
+  const userType = await getUserType()
+  const serviceSupabase = createServiceClient()
+
+  const { data: repo } = await serviceSupabase
     .from('repos')
     .select()
     .eq('id', repoId)
     .single()
 
-  if (!project) redirect('/dashboard')
+  if (!repo) redirect('/dashboard')
 
-  const { data: tokenRow } = await supabase
+  const { data: tokenRow } = await serviceSupabase
     .from('github_tokens')
     .select('access_token')
+    .eq('user_id', repo.owner_id)
     .single()
 
+  if (!tokenRow) redirect('/dashboard')
+
   const config = await fetchConfig(
-    tokenRow!.access_token,
-    project.github_repo,
-    project.config_path
+    tokenRow.access_token,
+    repo.github_repo,
+    repo.config_path
   )
 
   return (
     <div className="flex min-h-screen">
       <Sidebar
         repoId={repoId}
-        projectName={project.display_name}
+        projectName={repo.display_name}
         collections={config.collections}
         singletons={config.singletons}
         hasSettings={!!(config.data_files && config.data_files.length > 0)}
         userType={userType}
       />
-      <div className="flex-1 max-h-screen overflow-y-auto">
-        {children}
-      </div>
+      <RepoProvider value={{ repo, config, accessToken: tokenRow.access_token, userType }}>
+        <div className="flex-1 max-h-screen overflow-y-auto">
+          {children}
+        </div>
+      </RepoProvider>
     </div>
   )
 }

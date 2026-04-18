@@ -1,39 +1,12 @@
-import { createClient } from '@/lib/supabase/server'
-import { fetchConfig } from '@/lib/cms/config'
-import { redirect } from 'next/navigation'
+'use client'
+
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import InviteForm from '@/components/InviteForm'
+import { useRepo } from '@/lib/cms/context'
 
-export default async function RepoPage({
-  params,
-}: {
-  params: Promise<{ repoId: string }>
-}) {
-  const { repoId } = await params
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: repo } = await supabase
-    .from('repos')
-    .select()
-    .eq('id', repoId)
-    .single()
-
-  if (!repo) redirect('/dashboard')
-
-  const { data: tokenRow } = await supabase
-    .from('github_tokens')
-    .select('access_token')
-    .single()
-
-  const config = await fetchConfig(
-    tokenRow!.access_token,
-    repo.github_repo,
-    repo.config_path
-  )
+export default function RepoPage() {
+  const { repo, config, userType } = useRepo()
 
   return (
     <div className="p-8">
@@ -49,7 +22,7 @@ export default async function RepoPage({
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {config.collections.map(collection => (
-              <Link key={collection.name} href={`/dashboard/${repoId}/${collection.name}`}>
+              <Link key={collection.name} href={`/dashboard/${repo.id}/${collection.name}`}>
                 <Card className="hover:bg-accent transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="text-base">{collection.label}</CardTitle>
@@ -68,7 +41,7 @@ export default async function RepoPage({
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {config.singletons.map(singleton => (
-                <Link key={singleton.name} href={`/dashboard/${repoId}/singleton/${singleton.name}`}>
+                <Link key={singleton.name} href={`/dashboard/${repo.id}/singleton/${singleton.name}`}>
                   <Card className="hover:bg-accent transition-colors cursor-pointer">
                     <CardHeader>
                       <CardTitle className="text-base">{singleton.label}</CardTitle>
@@ -82,7 +55,7 @@ export default async function RepoPage({
         )}
       </div>
 
-      <InviteForm repoId={repoId} />
+      {userType === 'developer' && <InviteForm repoId={repo.id} />}
     </div>
   )
 }
