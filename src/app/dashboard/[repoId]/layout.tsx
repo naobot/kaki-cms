@@ -53,7 +53,7 @@ export default async function RepoLayout({
         projectName={repo.display_name}
         collections={config.collections}
         singletons={config.singletons}
-        hasSettings={!!(config.data_files && config.data_files.length > 0)}
+        dataFiles={config.data_files ?? []}
         userType={userType}
       />
       <RepoProvider value={{ repo, config, accessToken: tokenRow.access_token, userType }}>

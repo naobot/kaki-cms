@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
 import { signOut } from '@/lib/actions/auth'
-import { Button } from './ui/button'
+import { Button } from '@/components/ui/button'
+import type { DataFile } from '@/lib/cms/types'
 
 type Collection = {
   name: string
@@ -21,11 +22,11 @@ type Props = {
   projectName?: string
   collections?: Collection[]
   singletons?: Singleton[]
-  hasSettings?: boolean
+  dataFiles?: DataFile[]
   userType?: 'developer' | 'editor'
 }
 
-export default function Sidebar({ repoId, projectName, collections, singletons, hasSettings, userType }: Props) {
+export default function Sidebar({ repoId, projectName, collections, singletons, dataFiles, userType }: Props) {
   const pathname = usePathname()
 
   return (
@@ -81,22 +82,25 @@ export default function Sidebar({ repoId, projectName, collections, singletons, 
               </div>
             )}
 
-            {hasSettings && (
+            {(dataFiles ?? []).length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                  Settings
+                  Data
                 </p>
                 <nav className="flex flex-col gap-1">
-                  <Link
-                    href={`/dashboard/${repoId}/settings`}
-                    className={`text-sm px-2 py-1 rounded-md hover:bg-accent transition-colors ${
-                      pathname === `/dashboard/${repoId}/settings`
-                        ? 'bg-accent font-medium'
-                        : 'text-muted-foreground'
-                    }`}
-                  >
-                    Site data
-                  </Link>
+                  {(dataFiles ?? []).map(dataFile => (
+                    <Link
+                      key={dataFile.path}
+                      href={`/dashboard/${repoId}/data/${dataFile.path}`}
+                      className={`text-sm px-2 py-1 rounded-md hover:bg-accent transition-colors ${
+                        pathname.includes(`/data/${dataFile.path}`)
+                          ? 'bg-accent font-medium'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      {dataFile.label}
+                    </Link>
+                  ))}
                 </nav>
               </div>
             )}

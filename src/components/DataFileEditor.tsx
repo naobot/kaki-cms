@@ -1,0 +1,79 @@
+'use client'
+import { useState, useCallback } from 'react'
+import { Button } from '@/components/ui/button'
+import FieldRenderer from '@/components/FieldRenderer'
+import type { Field } from '@/lib/cms/types'
+import type { UserType } from '@/lib/cms/user'
+import * as yaml from 'js-yaml'
+
+type GitHubFile = {
+  content: string
+  sha: string
+}
+
+type Props = {
+  repoId: string
+  filePath: string
+  fields: Field[]
+  file: GitHubFile | null
+  userType: UserType
+}
+
+function parseStructuredFile(file: GitHubFile | null, filePath: string): Record<string, unknown> {
+  if (!file) return {}
+  try {
+    const ext = filePath.split('.').pop()?.toLowerCase()
+    const parsed = ext === 'json' ? JSON.parse(file.content) : yaml.load(file.content)
+    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed))
+      ? parsed as Record<string, unknown>
+      : {}
+  } catch {
+    return {}
+  }
+}
+
+export default function DataFileEditor({ repoId, filePath, fields, file, userType }: Props) {
+  const [values, setValues] = useState<Record<string, unknown>>(
+    () => parseStructuredFile(file, filePath)
+  )
+  const [sha, setSha] = useState<string | null>(file?.sha ?? null)
+  const [saving, setSaving] = useState(false)
+
+  const handleChange = useCallback((fieldName: string, value: unknown) => {
+    setValues(prev => ({ ...prev, [fieldName]: value }))
+  }, [])
+
+  const handleSave = useCallback(async () => {
+    setSaving(true)
+    const res = await fetch(`/api/repos/${repoId}/data/${filePath}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: values, sha }),
+    })
+    const json = await res.json()
+    if (json.sha) setSha(json.sha)
+    setSaving(false)
+  }, [repoId, filePath, values, sha])
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6">
+        {fields.map(field => (
+          <div key={field.name} className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium">{field.label}</label>
+            <FieldRenderer
+              field={field}
+              value={values[field.name] ?? ''}
+              onChangeAction={value => handleChange(field.name, value)}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-end pt-2">
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? 'Saving…' : 'Save'}
+        </Button>
+      </div>
+    </div>
+  )
+}

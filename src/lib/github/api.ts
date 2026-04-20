@@ -76,7 +76,7 @@ export async function putFile(
   content: string,
   sha: string | undefined,
   message: string
-): Promise<void> {
+): Promise<{ content: { sha: string } }> {
   const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
     method: 'PUT',
     headers: {
@@ -92,6 +92,7 @@ export async function putFile(
   })
 
   if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
+  return response.json()
 }
 
 export async function putFileBinary(

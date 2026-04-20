@@ -79,7 +79,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     .select('github_repo, owner_id')
     .eq('id', id)
     .single()
-
   if (!repo) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
 
   const { data: tokenRow } = await serviceSupabase
@@ -87,20 +86,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     .select('access_token')
     .eq('user_id', repo.owner_id)
     .single()
-
   if (!tokenRow) return NextResponse.json({ error: 'No token found' }, { status: 404 })
 
-  const { items, sha } = await request.json() as { items: string[], sha: string | null }
-  const serialised = serialiseDataFile(items, format)
+  const body = await request.json() as
+    | { items: string[]; sha: string | null }
+    | { data: Record<string, unknown>; sha: string | null }
 
-  await putFile(
+  const payload = 'data' in body ? body.data : body.items
+  const serialised = format === 'json'
+    ? JSON.stringify(payload, null, 2)
+    : yaml.dump(payload)
+
+  const result = await putFile(
     tokenRow.access_token,
     repo.github_repo,
     filePath,
     serialised,
-    sha ?? undefined,
-    sha ? `Update ${filePath} via CMS` : `Create ${filePath} via CMS`
+    body.sha ?? undefined,
+    body.sha ? `Update ${filePath} via CMS` : `Create ${filePath} via CMS`
   )
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, sha: result?.content?.sha ?? null })
 }
