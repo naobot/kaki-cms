@@ -7,6 +7,7 @@ import MultiselectField from '@/components/fields/MultiselectField'
 import ListField from '@/components/fields/ListField'
 import ListOfObjectsField from '@/components/fields/ListOfObjectsField'
 import ImageField from '@/components/fields/ImageField'
+import ImageListField from '@/components/fields/ImageListField'
 
 type Props = {
   field: Field
@@ -22,6 +23,7 @@ const componentMap = {
   'list': ListField,
   'list-of-objects': ListOfObjectsField,
   'image': ImageField,
+  'image-list': ImageListField,
 } as const
 
 export default function FieldRenderer({ field, value, onChangeAction }: Props) {
