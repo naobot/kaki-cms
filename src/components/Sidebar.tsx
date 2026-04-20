@@ -1,9 +1,16 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
 import { signOut } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { DataFile } from '@/lib/cms/types'
 
 type Collection = {
@@ -17,6 +24,11 @@ type Singleton = {
   fields: { name: string }[]
 }
 
+type Repo = {
+  id: string
+  name: string
+}
+
 type Props = {
   repoId?: string
   projectName?: string
@@ -24,23 +36,46 @@ type Props = {
   singletons?: Singleton[]
   dataFiles?: DataFile[]
   userType?: 'developer' | 'editor'
+  repos?: Repo[]
 }
 
-export default function Sidebar({ repoId, projectName, collections, singletons, dataFiles, userType }: Props) {
+export default function Sidebar({ repoId, projectName, collections, singletons, dataFiles, userType, repos }: Props) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const showRepoSwitcher = userType === 'developer' && repoId && repos && repos.length > 1
 
   return (
     <aside className="w-56 shrink-0 border-r min-h-screen max-h-screen p-4 flex flex-col gap-4">
-      <Link href="/dashboard" className="font-semibold tracking-tight">
-        Kaki CMS
-      </Link>
+      <div className="flex items-center justify-between gap-2">
+        <Link href="/dashboard" className="font-bold tracking-tight shrink-0">
+          Kaki CMS
+        </Link>
+        {showRepoSwitcher && (
+          <Select
+            value={repoId}
+            onValueChange={(value) => router.push(`/dashboard/${value}`)}
+          >
+            <SelectTrigger className="h-6 text-xs px-2 border-0 shadow-none bg-muted text-muted-foreground w-auto max-w-[90px] focus:ring-0">
+              <SelectValue>{projectName}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {repos.map((repo) => (
+                <SelectItem key={repo.id} value={repo.id} className="text-xs">
+                  {repo.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
       <Separator />
       {repoId && projectName && (
         <>
           <div className="flex flex-col gap-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                {projectName}
+                Collections
               </p>
               <nav className="flex flex-col gap-1">
                 {(collections ?? []).map(collection => (
