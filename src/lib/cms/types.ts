@@ -6,6 +6,8 @@ export type FieldType =
   | 'list'
   | 'multiselect'
   | 'list-of-objects'
+  | 'image'
+  | 'image-list'
 
 export type Field = {
   name: string
