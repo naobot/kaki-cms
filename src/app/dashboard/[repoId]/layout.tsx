@@ -28,6 +28,14 @@ export default async function RepoLayout({
     .eq('id', repoId)
     .single()
 
+  const repos = userType === 'developer'
+    ? await serviceSupabase
+        .from('repos')
+        .select('id, display_name')
+        .eq('owner_id', user.id)
+        .then(({ data }) => (data ?? []).map(r => ({ id: r.id, name: r.display_name })))
+    : []
+
   if (!repo) redirect('/dashboard')
 
   const { data: tokenRow } = await serviceSupabase
@@ -55,6 +63,7 @@ export default async function RepoLayout({
         singletons={config.singletons}
         dataFiles={config.data_files ?? []}
         userType={userType}
+        repos={repos}
       />
       <RepoProvider value={{ repo, config, accessToken: tokenRow.access_token, userType }}>
         <div className="flex-1 max-h-screen overflow-y-auto">
