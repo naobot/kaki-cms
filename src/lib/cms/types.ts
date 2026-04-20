@@ -37,6 +37,7 @@ export type Singleton = {
 export type DataFile = {
   path: string
   label: string
+  fields?: Field[]
 }
 
 export type CMSConfig = {

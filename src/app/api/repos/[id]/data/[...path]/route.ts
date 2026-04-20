@@ -6,7 +6,24 @@ import * as yaml from 'js-yaml'
 
 type RouteParams = { params: Promise<{ id: string; path: string[] }> }
 
-// ... inferFormat, parseDataFile, serialiseDataFile unchanged ...
+function inferFormat(filePath: string): 'json' | 'yaml' {
+  const ext = filePath.split('.').pop()?.toLowerCase()
+  return ext === 'json' ? 'json' : 'yaml'
+}
+
+function parseDataFile(content: string, format: 'json' | 'yaml'): string[] {
+  const parsed = format === 'json' ? JSON.parse(content) : yaml.load(content)
+  if (!Array.isArray(parsed) || !parsed.every(item => typeof item === 'string')) {
+    throw new Error('Data file must be a flat array of strings')
+  }
+  return parsed
+}
+
+function serialiseDataFile(items: string[], format: 'json' | 'yaml'): string {
+  return format === 'json'
+    ? JSON.stringify(items, null, 2)
+    : yaml.dump(items)
+}
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const { id, path } = await params
