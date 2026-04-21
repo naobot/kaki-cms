@@ -101,7 +101,7 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
         )}
       </div>
 
-      <div className="flex flex-col gap-2 pt-1">
+      <div className="flex flex-col gap-2 pt-1 max-h-52 overflow-y-auto">
         {(options ?? []).length === 0 && (
           <p className="text-sm text-muted-foreground">No options yet — manage to add some</p>
         )}
@@ -126,7 +126,7 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
               <DialogTitle>Manage {field.label}</DialogTitle>
             </DialogHeader>
 
-            <div className="flex flex-col gap-2 my-2">
+            <div className="flex flex-col gap-2 my-2 max-h-72 overflow-y-auto">
               {managedItems.length === 0 && (
                 <p className="text-sm text-muted-foreground py-2">No items yet</p>
               )}
