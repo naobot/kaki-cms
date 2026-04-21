@@ -102,10 +102,10 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
       </div>
 
       <div className="flex flex-col gap-2 pt-1">
-        {options.length === 0 && (
+        {(options ?? []).length === 0 && (
           <p className="text-sm text-muted-foreground">No options yet — manage to add some</p>
         )}
-        {options.map(option => (
+        {(options ?? []).map(option => (
           <div key={option} className="flex items-center gap-2">
             <Checkbox
               id={`${field.name}-${option}`}
