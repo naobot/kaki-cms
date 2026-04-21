@@ -26,7 +26,7 @@ export default function RepoPage() {
                 <Card className="hover:bg-accent transition-colors cursor-pointer">
                   <CardHeader>
                     <CardTitle className="text-base">{collection.label}</CardTitle>
-                    <CardDescription>{collection.path}</CardDescription>
+                    {userType === 'developer' && <CardDescription>{collection.path}</CardDescription>}
                   </CardHeader>
                 </Card>
               </Link>
@@ -45,7 +45,7 @@ export default function RepoPage() {
                   <Card className="hover:bg-accent transition-colors cursor-pointer">
                     <CardHeader>
                       <CardTitle className="text-base">{singleton.label}</CardTitle>
-                      <CardDescription>{singleton.path}</CardDescription>
+                      {userType === 'developer' && <CardDescription>{singleton.path}</CardDescription>}
                     </CardHeader>
                   </Card>
                 </Link>
