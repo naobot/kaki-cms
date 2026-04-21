@@ -10,7 +10,7 @@ export default function FieldLabel({ field, children }: Props) {
     <div className="flex items-center gap-2">
       <Label>
         {field.label}
-        {field.required && <span className="text-destructive ml-0.5">*</span>}
+        {field.required && <span className="text-destructive">*</span>}
       </Label>
       {children}
     </div>

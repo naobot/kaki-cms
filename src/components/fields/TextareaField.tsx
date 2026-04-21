@@ -1,12 +1,12 @@
 'use client'
 import type { FieldProps } from './types'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import FieldLabel from './FieldLabel'
 
 export default function TextareaField({ field, value, onChangeAction }: FieldProps<string>) {
   return (
     <div>
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex flex-col gap-4 pt-1">
         <Textarea
           value={value ?? ''}

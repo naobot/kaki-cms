@@ -1,9 +1,9 @@
 'use client'
 import type { FieldProps } from './types'
 import FieldRenderer from '@/components/FieldRenderer'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import FieldLabel from './FieldLabel'
 
 type ObjectValue = Record<string, unknown>
 
@@ -26,7 +26,7 @@ export default function ListOfObjectsField({ field, value, onChangeAction }: Fie
 
   return (
     <div className="space-y-1">
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex flex-col gap-4 pt-1">
         {items.map((item, index) => (
           <div key={index} className="border rounded-md p-4 flex flex-col gap-4">

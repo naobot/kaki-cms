@@ -2,10 +2,10 @@
 import { useState } from 'react'
 import { useRepo } from '@/lib/cms/context'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import MediaLibrary from '@/components/MediaLibrary'
 import type { Field } from '@/lib/cms/types'
+import FieldLabel from './FieldLabel'
 
 type Props = {
   field: Field
@@ -25,7 +25,7 @@ export default function ImageField({ field, value, onChangeAction }: Props) {
 
   return (
     <div className="space-y-1">
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex gap-2 pt-1">
         <Input
           value={currentPath}

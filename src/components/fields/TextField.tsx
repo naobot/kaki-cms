@@ -1,12 +1,12 @@
 'use client'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import type { FieldProps } from './types'
+import FieldLabel from './FieldLabel'
 
 export default function TextField({ field, value, onChangeAction }: FieldProps<string>) {
   return (
     <div className="space-y-1">
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex flex-col gap-4 pt-1">
         <Input
           value={value ?? ''}

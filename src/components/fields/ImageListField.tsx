@@ -1,7 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { useRepo } from '@/lib/cms/context'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import MediaLibrary from '@/components/MediaLibrary'
 import type { FieldProps } from './types'
@@ -22,6 +21,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import FieldLabel from './FieldLabel'
 
 type ImageItem = { image: string }
 
@@ -102,7 +102,7 @@ export default function ImageListField({ field, value, onChangeAction }: FieldPr
 
   return (
     <div className="space-y-1">
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex flex-col gap-2 pt-1">
         {items.length === 0 && (
           <p className="text-sm text-muted-foreground py-2">No images yet</p>

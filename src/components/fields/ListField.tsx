@@ -1,8 +1,8 @@
 'use client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import type { FieldProps } from './types'
+import FieldLabel from './FieldLabel'
 
 export default function ListField({ field, value, onChangeAction }: FieldProps<string[]>) {
   const items = value ?? []
@@ -23,7 +23,7 @@ export default function ListField({ field, value, onChangeAction }: FieldProps<s
 
   return (
     <div className="space-y-1">
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex flex-col gap-2 pt-1">
         {items.map((item, index) => (
           <div key={index} className="flex gap-2">

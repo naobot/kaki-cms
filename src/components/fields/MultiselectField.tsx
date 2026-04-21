@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { useRepo } from '@/lib/cms/context'
+import FieldLabel from './FieldLabel'
 
 export default function MultiselectField({ field, value, onChangeAction }: FieldProps<string[]>) {
   const selected = value ?? []
@@ -89,7 +90,7 @@ export default function MultiselectField({ field, value, onChangeAction }: Field
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <Label>{field.label}</Label>
+        <FieldLabel field={field} />
         {field.data_file && (
           <button
             onClick={openManage}

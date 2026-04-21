@@ -1,12 +1,12 @@
 'use client'
 import type { FieldProps } from './types'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import FieldLabel from './FieldLabel'
 
 export default function NumberField({ field, value, onChangeAction }: FieldProps<number>) {
   return (
     <div>
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
       <div className="flex flex-col gap-4 pt-1">
         <Input
           type="number"

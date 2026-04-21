@@ -6,8 +6,8 @@ import Link from '@tiptap/extension-link'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import type { FieldProps } from './types'
-import { Label } from '@/components/ui/label'
 import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Minus } from 'lucide-react'
+import FieldLabel from './FieldLabel'
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -50,7 +50,7 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <Label>{field.label}</Label>
+      <FieldLabel field={field} />
 
       <div>
         {/* Toolbar */}
