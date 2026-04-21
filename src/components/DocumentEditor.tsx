@@ -196,6 +196,7 @@ export default function DocumentEditor({
 
           <div className="space-y-1">
             <Label>Page Content</Label>
+            <span className="text-xs text-muted-foreground">(HTML supported)</span>
             <div className="flex flex-col gap-4 pt-1">
               <Textarea
                 value={body}

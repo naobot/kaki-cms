@@ -8,6 +8,7 @@ import ListField from '@/components/fields/ListField'
 import ListOfObjectsField from '@/components/fields/ListOfObjectsField'
 import ImageField from '@/components/fields/ImageField'
 import ImageListField from '@/components/fields/ImageListField'
+import RichTextField from './fields/RichTextField'
 
 type Props = {
   field: Field
@@ -24,6 +25,7 @@ const componentMap = {
   'list-of-objects': ListOfObjectsField,
   'image': ImageField,
   'image-list': ImageListField,
+  'rich-text': RichTextField,
 } as const
 
 export default function FieldRenderer({ field, value, onChangeAction }: Props) {

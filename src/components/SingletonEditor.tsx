@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Singleton } from '@/lib/cms/types'
@@ -7,9 +6,9 @@ import type { ParsedDocument } from '@/lib/cms/parser'
 import FieldRenderer from '@/components/FieldRenderer'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
+import RichTextField from '@/components/fields/RichTextField'
 
 type Props = {
   repoId: string
@@ -82,13 +81,11 @@ export default function SingletonEditor({
           <Separator />
 
           <div className="space-y-1">
-            <Label>Page Content</Label>
             <div className="flex flex-col gap-4 pt-1">
-              <Textarea
+              <RichTextField
+                field={{ name: 'body', label: 'Page Content', type: 'rich-text' }}
                 value={body}
-                onChange={e => setBody(e.target.value)}
-                className="min-h-64 font-mono text-sm"
-                placeholder="Write your markdown content here..."
+                onChangeAction={value => setBody(value as string)}
               />
             </div>
           </div>
