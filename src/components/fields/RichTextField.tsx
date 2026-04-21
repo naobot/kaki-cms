@@ -51,6 +51,7 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
   return (
     <div className="flex flex-col gap-2">
       <FieldLabel field={field} />
+      <span className="text-xs text-muted-foreground">(HTML supported)</span>
 
       <div>
         {/* Toolbar */}

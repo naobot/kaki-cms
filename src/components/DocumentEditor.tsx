@@ -7,7 +7,6 @@ import FieldRenderer from '@/components/FieldRenderer'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -22,6 +21,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import Link from 'next/link'
 import DeleteDocumentButton from '@/components/DeleteDocumentButton'
+import RichTextField from './fields/RichTextField'
 
 type Props = {
   repoId: string
@@ -195,14 +195,11 @@ export default function DocumentEditor({
           <Separator />
 
           <div className="space-y-1">
-            <Label>Page Content</Label>
-            <span className="text-xs text-muted-foreground">(HTML supported)</span>
             <div className="flex flex-col gap-4 pt-1">
-              <Textarea
+              <RichTextField
+                field={{ name: 'body', label: 'Page Content', type: 'rich-text' }}
                 value={body}
-                onChange={e => setBody(e.target.value)}
-                className="min-h-64 font-mono text-sm"
-                placeholder="Write your markdown content here..."
+                onChangeAction={value => setBody(value as string)}
               />
             </div>
           </div>
