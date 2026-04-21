@@ -68,6 +68,7 @@ export default async function DataFilePage({
           repoId={repoId}
           filePath={filePath}
           fields={dataFileConfig.fields}
+          label={dataFileConfig.label}
           file={file ?? null}
           userType={userType}
         />

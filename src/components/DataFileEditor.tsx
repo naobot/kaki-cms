@@ -17,6 +17,7 @@ type Props = {
   fields: Field[]
   file: GitHubFile | null
   userType: UserType
+  label: string
 }
 
 function parseStructuredFile(file: GitHubFile | null, filePath: string): Record<string, unknown> {
@@ -32,7 +33,7 @@ function parseStructuredFile(file: GitHubFile | null, filePath: string): Record<
   }
 }
 
-export default function DataFileEditor({ repoId, filePath, fields, file, userType }: Props) {
+export default function DataFileEditor({ repoId, filePath, fields, file, label, userType }: Props) {
   const [values, setValues] = useState<Record<string, unknown>>(
     () => parseStructuredFile(file, filePath)
   )
@@ -57,10 +58,24 @@ export default function DataFileEditor({ repoId, filePath, fields, file, userTyp
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-base font-semibold">{label}</h2>
+          {userType === 'developer' && (
+            <p className="text-xs text-muted-foreground mt-0.5">{filePath}</p>
+          )}
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? 'Saving…' : 'Save'}
+        </Button>
+      </div>
       <div className="flex flex-col gap-6">
         {fields.map(field => (
           <div key={field.name} className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">{field.label}</label>
             <FieldRenderer
               field={field}
               value={values[field.name] ?? ''}
@@ -68,11 +83,6 @@ export default function DataFileEditor({ repoId, filePath, fields, file, userTyp
             />
           </div>
         ))}
-      </div>
-      <div className="flex justify-end pt-2">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving…' : 'Save'}
-        </Button>
       </div>
     </div>
   )
