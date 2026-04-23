@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getDirectoryWithMeta, putFileBinary, deleteFile } from '@/lib/github/api'
+import { getDirectoryWithMeta, putFileBinary, deleteFile, GitHubAuthError } from '@/lib/github/api'
 import { fetchConfig } from '@/lib/cms/config'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -42,22 +42,29 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { repo, token } = await getRepoAndToken(id)
-  if (!repo) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
+  if (!repo || !token) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
 
-  const config = await fetchConfig(token, repo.github_repo)
-  const assetsPath = config.assets_path ?? 'public/assets/uploads'
+  try {
+    const config = await fetchConfig(token, repo.github_repo)
+    const assetsPath = config.assets_path ?? 'public/assets/uploads'
 
-  const files = await getDirectoryWithMeta(token, repo.github_repo, assetsPath)
-  const images = files
-    .filter(f => f.type === 'file' && isImage(f.name))
-    .map(f => ({
-      name: f.name,
-      path: '/' + f.path.replace(/^public\//, ''),
-      sha: f.sha,
-      downloadUrl: f.downloadUrl,
-    }))
+    const files = await getDirectoryWithMeta(token, repo.github_repo, assetsPath)
+    const images = files
+      .filter(f => f.type === 'file' && isImage(f.name))
+      .map(f => ({
+        name: f.name,
+        path: '/' + f.path.replace(/^public\//, ''),
+        sha: f.sha,
+        downloadUrl: f.downloadUrl,
+      }))
 
-  return NextResponse.json(images)
+    return NextResponse.json(images)
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Failed to load assets' }, { status: 500 })
+  }
 }
 
 export async function POST(
@@ -71,10 +78,7 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { repo, token } = await getRepoAndToken(id)
-  if (!repo) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
-
-  const config = await fetchConfig(token, repo.github_repo)
-  const assetsPath = config.assets_path ?? 'public/assets/uploads'
+  if (!repo || !token) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -84,15 +88,24 @@ export async function POST(
     return NextResponse.json({ error: 'File type not supported' }, { status: 400 })
   }
 
-  const arrayBuffer = await file.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-  const filePath = `${assetsPath}/${file.name}`
+  try {
+    const config = await fetchConfig(token, repo.github_repo)
+    const assetsPath = config.assets_path ?? 'public/assets/uploads'
 
-  await putFileBinary(token, repo.github_repo, filePath, buffer, `Upload ${file.name} via CMS`)
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const filePath = `${assetsPath}/${file.name}`
 
-  const storedPath = '/' + filePath.replace(/^public\//, '')
+    await putFileBinary(token, repo.github_repo, filePath, buffer, `Upload ${file.name} via CMS`)
 
-  return NextResponse.json({ path: storedPath })
+    const storedPath = '/' + filePath.replace(/^public\//, '')
+    return NextResponse.json({ path: storedPath })
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Failed to upload asset' }, { status: 500 })
+  }
 }
 
 export async function DELETE(
@@ -106,15 +119,18 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { repo, token } = await getRepoAndToken(id)
-  if (!repo) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
+  if (!repo || !token) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
 
   const { filePath, sha } = await request.json()
-
-  // filePath arrives as a public URL path e.g. /assets/uploads/foo.png
-  // so we need to reconstruct the full repo path
   const repoFilePath = 'public' + filePath
 
-  await deleteFile({ repo: repo.github_repo, filePath: repoFilePath, sha, token })
-
-  return new Response(null, { status: 200 })
+  try {
+    await deleteFile({ repo: repo.github_repo, filePath: repoFilePath, sha, token })
+    return new Response(null, { status: 200 })
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Failed to delete asset' }, { status: 500 })
+  }
 }

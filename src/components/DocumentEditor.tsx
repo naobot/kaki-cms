@@ -23,6 +23,7 @@ import {
 import DeleteDocumentButton from '@/components/DeleteDocumentButton'
 import RichTextField from '@/components/fields/RichTextField'
 import { resolveSlug, toSlug } from '@/lib/cms/slugify'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 type Props = {
   repoId: string
@@ -78,7 +79,7 @@ export default function DocumentEditor({
     try {
       const resolvedFilePath = isNew
         ? await (async () => {
-            const res = await fetch(`/api/repos/${repoId}/collections/${collectionName}/slugs`)
+            const res = await cmsFetch(`/api/repos/${repoId}/collections/${collectionName}/slugs`)
             if (!res.ok) throw new Error('Failed to fetch existing slugs')
             const existing: string[] = await res.json()
             const base = toSlug(String(frontmatter.title ?? ''))
@@ -87,7 +88,7 @@ export default function DocumentEditor({
           })()
         : filePath
 
-      const res = await fetch(`/api/repos/${repoId}/content`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/content`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -9,6 +9,7 @@ import FieldRenderer from '@/components/FieldRenderer'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import RichTextField from '@/components/fields/RichTextField'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 type Props = {
   repoId: string
@@ -37,7 +38,7 @@ export default function SingletonEditor({
   async function handleSave() {
     setSaving(true)
     try {
-      const res = await fetch(`/api/repos/${repoId}/content`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/content`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -22,6 +22,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { saveOrder } from '@/lib/cms/actions'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 type Document = {
   name: string
@@ -163,7 +164,7 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
       const doc = items.find(d => d.slug === slug)
       if (!doc) throw new Error('Document not found')
 
-      const res = await fetch(`/api/repos/${repoId}/content`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/content`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

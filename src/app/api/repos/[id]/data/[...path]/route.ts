@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { getFile, putFile } from '@/lib/github/api'
+import { getFile, putFile, GitHubAuthError } from '@/lib/github/api'
 import { NextRequest, NextResponse } from 'next/server'
 import * as yaml from 'js-yaml'
 
@@ -19,12 +19,6 @@ function parseDataFile(content: string, format: 'json' | 'yaml'): string[] {
   return parsed
 }
 
-function serialiseDataFile(items: string[], format: 'json' | 'yaml'): string {
-  return format === 'json'
-    ? JSON.stringify(items, null, 2)
-    : yaml.dump(items)
-}
-
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const { id, path } = await params
   const filePath = path.join('/')
@@ -41,7 +35,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     .select('github_repo, owner_id')
     .eq('id', id)
     .single()
-
   if (!repo) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
 
   const { data: tokenRow } = await serviceSupabase
@@ -49,10 +42,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     .select('access_token')
     .eq('user_id', repo.owner_id)
     .single()
-
   if (!tokenRow) return NextResponse.json({ error: 'No token found' }, { status: 404 })
 
-  const file = await getFile(tokenRow.access_token, repo.github_repo, filePath)
+  let file
+  try {
+    file = await getFile(tokenRow.access_token, repo.github_repo, filePath)
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Failed to fetch file' }, { status: 500 })
+  }
+
   if (!file) return NextResponse.json({ items: [], sha: null })
 
   try {
@@ -97,14 +98,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     ? JSON.stringify(payload, null, 2)
     : yaml.dump(payload)
 
-  const result = await putFile(
-    tokenRow.access_token,
-    repo.github_repo,
-    filePath,
-    serialised,
-    body.sha ?? undefined,
-    body.sha ? `Update ${filePath} via CMS` : `Create ${filePath} via CMS`
-  )
-
-  return NextResponse.json({ success: true, sha: result?.content?.sha ?? null })
+  try {
+    const result = await putFile(
+      tokenRow.access_token,
+      repo.github_repo,
+      filePath,
+      serialised,
+      body.sha ?? undefined,
+      body.sha ? `Update ${filePath} via CMS` : `Create ${filePath} via CMS`
+    )
+    return NextResponse.json({ success: true, sha: result?.content?.sha ?? null })
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Failed to save file' }, { status: 500 })
+  }
 }

@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { X } from 'lucide-react'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 type Asset = {
   name: string
@@ -35,7 +36,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
   useEffect(() => {
     if (!open) return
     setLoading(true)
-    fetch(`/api/repos/${repoId}/assets`)
+    cmsFetch(`/api/repos/${repoId}/assets`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to load media library')
         return res.json()
@@ -54,7 +55,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch(`/api/repos/${repoId}/assets`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/assets`, {
         method: 'POST',
         body: formData,
       })
@@ -62,7 +63,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
 
       const { path } = await res.json()
 
-      const refreshed = await fetch(`/api/repos/${repoId}/assets`)
+      const refreshed = await cmsFetch(`/api/repos/${repoId}/assets`)
       if (!refreshed.ok) throw new Error('Failed to refresh assets')
       setAssets(await refreshed.json())
 
@@ -80,7 +81,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
     e.stopPropagation()
     setDeleting(prev => ({ ...prev, [asset.path]: true }))
     try {
-      const res = await fetch(`/api/repos/${repoId}/assets`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/assets`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filePath: asset.path, sha: asset.sha }),

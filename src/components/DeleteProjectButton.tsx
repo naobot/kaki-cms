@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 export default function DeleteProjectButton({ repoId }: { repoId: string }) {
   const router = useRouter()
@@ -12,7 +13,7 @@ export default function DeleteProjectButton({ repoId }: { repoId: string }) {
   async function handleDelete() {
     setIsDeletePending(true)
     try {
-      const res = await fetch(`/api/repos/${repoId}`, { method: 'DELETE' })
+      const res = await cmsFetch(`/api/repos/${repoId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete project')
       router.refresh()
     } catch (err) {

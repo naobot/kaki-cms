@@ -1,16 +1,31 @@
 const GITHUB_API = 'https://api.github.com'
 
+export class GitHubAuthError extends Error {
+  constructor() {
+    super('GitHub token invalid or revoked')
+    this.name = 'GitHubAuthError'
+  }
+}
+
+async function githubFetch(token: string, url: string, options?: RequestInit): Promise<Response> {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      ...options?.headers,
+    },
+  })
+  if (response.status === 401) throw new GitHubAuthError()
+  return response
+}
+
 export async function getFile(
   token: string,
   repo: string,
   path: string
 ): Promise<{ content: string; sha: string } | null> {
-  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-    },
-  })
+  const response = await githubFetch(token, `${GITHUB_API}/repos/${repo}/contents/${path}`)
 
   if (response.status === 404) return null
 
@@ -28,12 +43,7 @@ export async function getDirectory(
   repo: string,
   path: string
 ): Promise<{ name: string; path: string; type: 'file' | 'dir' }[]> {
-  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-    },
-  })
+  const response = await githubFetch(token, `${GITHUB_API}/repos/${repo}/contents/${path}`)
 
   if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
 
@@ -50,12 +60,7 @@ export async function getDirectoryWithMeta(
   repo: string,
   path: string
 ): Promise<{ name: string; path: string; sha: string; downloadUrl: string; type: 'file' | 'dir' }[]> {
-  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-    },
-  })
+  const response = await githubFetch(token, `${GITHUB_API}/repos/${repo}/contents/${path}`)
 
   if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
 
@@ -77,11 +82,9 @@ export async function putFile(
   sha: string | undefined,
   message: string
 ): Promise<{ content: { sha: string } }> {
-  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
+  const response = await githubFetch(token, `${GITHUB_API}/repos/${repo}/contents/${path}`, {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -102,11 +105,9 @@ export async function putFileBinary(
   buffer: Buffer,
   message: string
 ): Promise<void> {
-  const response = await fetch(`${GITHUB_API}/repos/${repo}/contents/${path}`, {
+  const response = await githubFetch(token, `${GITHUB_API}/repos/${repo}/contents/${path}`, {
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -129,12 +130,12 @@ export async function deleteFile({
   sha: string
   token: string
 }) {
-  const res = await fetch(
+  const res = await githubFetch(
+    token,
     `https://api.github.com/repos/${repo}/contents/${filePath}`,
     {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

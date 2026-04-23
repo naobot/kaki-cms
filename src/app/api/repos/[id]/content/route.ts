@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { deleteFile, putFile } from '@/lib/github/api'
+import { deleteFile, GitHubAuthError, putFile } from '@/lib/github/api'
 import { serialiseDocument } from '@/lib/cms/parser'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -35,14 +35,21 @@ export async function PUT(
   const { frontmatter, body, sha, filePath, isNew } = await request.json()
   const serialised = serialiseDocument(frontmatter, body)
 
-  await putFile(
-    tokenRow.access_token,
-    repo.github_repo,
-    filePath,
-    serialised,
-    isNew ? undefined : sha,
-    isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
-  )
+  try {
+    await putFile(
+      tokenRow.access_token,
+      repo.github_repo,
+      filePath,
+      serialised,
+      isNew ? undefined : sha,
+      isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
+    )
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
+  }
 
   return NextResponse.json({ success: true })
 }
@@ -76,7 +83,14 @@ export async function DELETE(
 
   if (!tokenRow) return new Response('No token found', { status: 404 })
 
-  await deleteFile({ repo: repo.github_repo, filePath, sha, token: tokenRow.access_token })
+  try {
+    await deleteFile({ repo: repo.github_repo, filePath, sha, token: tokenRow.access_token })
+  } catch (err) {
+    if (err instanceof GitHubAuthError) {
+      return NextResponse.json({ error: 'github_auth' }, { status: 401 })
+    }
+    return new Response('Failed to delete', { status: 500 })
+  }
 
   return new Response(null, { status: 200 })
 }

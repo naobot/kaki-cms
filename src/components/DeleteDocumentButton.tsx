@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 type Props = {
   repoId: string
@@ -19,7 +20,7 @@ export default function DeleteDocumentButton({ repoId, filePath, sha, redirectTo
   async function handleDelete() {
     setIsDeletePending(true)
     try {
-      const res = await fetch(`/api/repos/${repoId}/content`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/content`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filePath, sha }),
