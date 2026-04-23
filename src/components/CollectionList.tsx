@@ -1,7 +1,7 @@
 'use client'
-
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Eye, EyeOff } from 'lucide-react'
 import {
@@ -137,9 +137,15 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
 
   const handleConfirm = useCallback(async () => {
     setIsSaving(true)
-    await saveOrder(repoId, collectionPath, items.map(d => d.slug))
-    setIsDirty(false)
-    setIsSaving(false)
+    try {
+      await saveOrder(repoId, collectionPath, items.map(d => d.slug))
+      setIsDirty(false)
+      toast.success('Order saved')
+    } catch {
+      toast.error('Failed to save order')
+    } finally {
+      setIsSaving(false)
+    }
   }, [repoId, collectionPath, items])
 
   const handleTogglePublished = useCallback(async (slug: string) => {
@@ -148,33 +154,36 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
 
     const newPublished = !current.published
 
-    // Optimistic update
     setMeta(prev => ({
       ...prev,
       [slug]: { ...prev[slug], published: newPublished },
     }))
 
-    const doc = items.find(d => d.slug === slug)
-    if (!doc) return
+    try {
+      const doc = items.find(d => d.slug === slug)
+      if (!doc) throw new Error('Document not found')
 
-    const response = await fetch(`/api/repos/${repoId}/content`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        frontmatter: { ...current.frontmatter, published: newPublished },
-        body: current.body,
-        sha: current.sha,
-        filePath: doc.path,
-        isNew: false,
-      }),
-    })
+      const res = await fetch(`/api/repos/${repoId}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          frontmatter: { ...current.frontmatter, published: newPublished },
+          body: current.body,
+          sha: current.sha,
+          filePath: doc.path,
+          isNew: false,
+        }),
+      })
 
-    if (!response.ok) {
-      // Revert on failure
+      if (!res.ok) throw new Error('Failed to update')
+
+      toast.success(newPublished ? 'Document published' : 'Document unpublished')
+    } catch {
       setMeta(prev => ({
         ...prev,
         [slug]: { ...prev[slug], published: current.published },
       }))
+      toast.error('Failed to update publish status')
     }
   }, [repoId, items, meta])
 
