@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { X } from 'lucide-react'
 
 type Asset = {
@@ -34,8 +36,12 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
     if (!open) return
     setLoading(true)
     fetch(`/api/repos/${repoId}/assets`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load media library')
+        return res.json()
+      })
       .then(data => setAssets(data))
+      .catch(() => toast.error('Failed to load media library'))
       .finally(() => setLoading(false))
   }, [open, repoId])
 
@@ -44,37 +50,49 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
     if (!file) return
 
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
 
-    const res = await fetch(`/api/repos/${repoId}/assets`, {
-      method: 'POST',
-      body: formData,
-    })
+      const res = await fetch(`/api/repos/${repoId}/assets`, {
+        method: 'POST',
+        body: formData,
+      })
+      if (!res.ok) throw new Error('Upload failed')
 
-    const { path } = await res.json()
+      const { path } = await res.json()
 
-    const refreshed = await fetch(`/api/repos/${repoId}/assets`).then(r => r.json())
-    setAssets(refreshed)
-    setUploading(false)
+      const refreshed = await fetch(`/api/repos/${repoId}/assets`)
+      if (!refreshed.ok) throw new Error('Failed to refresh assets')
+      setAssets(await refreshed.json())
 
-    if (fileInputRef.current) fileInputRef.current.value = ''
-
-    onSelectAction(path)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      onSelectAction(path)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } finally {
+      setUploading(false)
+    }
   }
 
   async function handleDelete(e: React.MouseEvent, asset: Asset) {
     e.stopPropagation()
     setDeleting(prev => ({ ...prev, [asset.path]: true }))
-
-    await fetch(`/api/repos/${repoId}/assets`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filePath: asset.path, sha: asset.sha }),
-    })
-
-    setAssets(prev => prev.filter(a => a.path !== asset.path))
-    setDeleting(prev => ({ ...prev, [asset.path]: false }))
+    try {
+      const res = await fetch(`/api/repos/${repoId}/assets`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath: asset.path, sha: asset.sha }),
+      })
+      if (!res.ok) throw new Error('Failed to delete image')
+      setAssets(prev => prev.filter(a => a.path !== asset.path))
+      toast.success('Image deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setDeleting(prev => ({ ...prev, [asset.path]: false }))
+    }
   }
 
   return (
@@ -103,7 +121,11 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
         </div>
 
         {loading ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">Loading...</p>
+          <div className="grid grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded" />
+            ))}
+          </div>
         ) : assets.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">No images yet</p>
         ) : (
