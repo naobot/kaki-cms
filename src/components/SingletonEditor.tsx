@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import type { Singleton } from '@/lib/cms/types'
 import type { ParsedDocument } from '@/lib/cms/parser'
 import FieldRenderer from '@/components/FieldRenderer'
@@ -35,61 +36,64 @@ export default function SingletonEditor({
 
   async function handleSave() {
     setSaving(true)
-
-    await fetch(`/api/repos/${repoId}/content`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        frontmatter,
-        body,
-        sha: document.sha,
-        filePath,
-        isNew: false,
-      }),
-    })
-
-    setSaving(false)
-    router.refresh()
+    try {
+      const res = await fetch(`/api/repos/${repoId}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          frontmatter,
+          body,
+          sha: document.sha,
+          filePath,
+          isNew: false,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      toast.success('Saved')
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <>
-      <div className="p-8 max-w-2xl">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-semibold">Edit {singleton.label}</h1>
-          <div className="flex items-center gap-4">
-            <Button asChild variant="ghost">
-              <Link href={`/dashboard/${repoId}`}>← Back</Link>
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
+    <div className="flex flex-col">
+      <div className="sticky top-0 z-10 bg-background border-b px-8 py-4 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Edit {singleton.label}</h1>
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost">
+            <Link href={`/dashboard/${repoId}`}>← Back</Link>
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-6">
-          {singleton.fields.map(field => (
-            <FieldRenderer
-              key={field.name}
-              field={field}
-              value={frontmatter[field.name]}
-              onChangeAction={value => updateField(field.name, value)}
+      <div className="p-8 max-w-2xl flex flex-col gap-6">
+        {singleton.fields.map(field => (
+          <FieldRenderer
+            key={field.name}
+            field={field}
+            value={frontmatter[field.name]}
+            onChangeAction={value => updateField(field.name, value)}
+          />
+        ))}
+
+        <Separator />
+
+        <div className="space-y-1">
+          <div className="flex flex-col gap-4 pt-1">
+            <RichTextField
+              field={{ name: 'body', label: 'Page Content', type: 'rich-text' }}
+              value={body}
+              onChangeAction={value => setBody(value as string)}
             />
-          ))}
-
-          <Separator />
-
-          <div className="space-y-1">
-            <div className="flex flex-col gap-4 pt-1">
-              <RichTextField
-                field={{ name: 'body', label: 'Page Content', type: 'rich-text' }}
-                value={body}
-                onChangeAction={value => setBody(value as string)}
-              />
-            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
