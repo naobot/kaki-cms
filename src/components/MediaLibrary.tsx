@@ -107,7 +107,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
         ) : assets.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">No images yet</p>
         ) : (
-          <div className="grid grid-cols-3 gap-3 max-h-[60vh]">
+          <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
             {assets.map(asset => (
               <button
                 key={asset.path}
