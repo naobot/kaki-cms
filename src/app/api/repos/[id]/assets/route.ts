@@ -3,6 +3,7 @@ import { getDirectoryWithMeta, putFileBinary, deleteFile, GitHubAuthError } from
 import { fetchConfig } from '@/lib/cms/config'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { sanitiseFilename } from '@/lib/cms/slugify'
 
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
 
@@ -94,7 +95,8 @@ export async function POST(
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const filePath = `${assetsPath}/${file.name}`
+    const sanitisedName = sanitiseFilename(file.name)
+    const filePath = `${assetsPath}/${sanitisedName}`
 
     await putFileBinary(token, repo.github_repo, filePath, buffer, `Upload ${file.name} via CMS`)
 

@@ -6,6 +6,7 @@ import FieldRenderer from '@/components/FieldRenderer'
 import type { Field } from '@/lib/cms/types'
 import type { UserType } from '@/lib/cms/user'
 import * as yaml from 'js-yaml'
+import { cmsFetch } from '@/lib/cms/fetch'
 
 type GitHubFile = {
   content: string
@@ -48,7 +49,7 @@ export default function DataFileEditor({ repoId, filePath, fields, file, label, 
   const handleSave = useCallback(async () => {
     setSaving(true)
     try {
-      const res = await fetch(`/api/repos/${repoId}/data/${filePath}`, {
+      const res = await cmsFetch(`/api/repos/${repoId}/data/${filePath}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: values, sha }),
