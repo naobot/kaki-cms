@@ -5,7 +5,6 @@ import type { Collection } from '@/lib/cms/types'
 import type { ParsedDocument } from '@/lib/cms/parser'
 import FieldRenderer from '@/components/FieldRenderer'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
@@ -53,7 +52,6 @@ export default function DocumentEditor({
     return document.frontmatter
   })
   const [body, setBody] = useState(document.body)
-  const [filename, setFilename] = useState('')
   const [saving, setSaving] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
