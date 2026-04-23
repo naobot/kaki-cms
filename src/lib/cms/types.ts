@@ -8,6 +8,7 @@ export type FieldType =
   | 'list-of-objects'
   | 'image'
   | 'image-list'
+  | 'object'
 
 export type Field = {
   name: string

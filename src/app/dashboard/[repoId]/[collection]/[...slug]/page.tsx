@@ -58,10 +58,11 @@ export default async function EditPage({
       repoId={repoId}
       githubRepo={repo.github_repo}
       collection={collection}
+      collectionName={collectionName}
+      collectionPath={collection.path}
       document={document}
       filePath={isNew ? null : `${collection.path}/${slug.join('/')}.md`}
       isNew={isNew}
-      collectionPath={collection.path}
     />
   )
 }

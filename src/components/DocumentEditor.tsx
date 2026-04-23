@@ -22,6 +22,7 @@ import {
 import Link from 'next/link'
 import DeleteDocumentButton from '@/components/DeleteDocumentButton'
 import RichTextField from './fields/RichTextField'
+import { resolveSlug, toSlug } from '@/lib/cms/slugify'
 
 type Props = {
   repoId: string
@@ -31,6 +32,7 @@ type Props = {
   filePath: string | null
   isNew: boolean
   collectionPath: string
+  collectionName: string
 }
 
 export default function DocumentEditor({
@@ -41,6 +43,7 @@ export default function DocumentEditor({
   filePath,
   isNew,
   collectionPath,
+  collectionName,
 }: Props) {
   const router = useRouter()
   const [frontmatter, setFrontmatter] = useState<Record<string, unknown>>(() => {
@@ -74,7 +77,14 @@ export default function DocumentEditor({
     setSaving(true)
 
     const resolvedFilePath = isNew
-      ? `${collectionPath}/${filename}.md`
+      ? await (async () => {
+          const existing: string[] = await fetch(
+            `/api/repos/${repoId}/collections/${collectionName}/slugs`
+          ).then(r => r.json())
+          const base = toSlug(String(frontmatter.title ?? ''))
+          const slug = resolveSlug(base, existing)
+          return `${collectionPath}/${slug}.md`
+        })()
       : filePath
 
     await fetch(`/api/repos/${repoId}/content`, {
@@ -131,27 +141,27 @@ export default function DocumentEditor({
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="p-8 max-w-2xl">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-semibold">
-              {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
-            </h1>
-          </div>
+      <div className="flex flex-col">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-10 bg-background border-b px-8 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">
+            {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
+          </h1>
           <div className="flex items-center gap-4">
             <Button asChild variant="ghost">
               <Link href={`/dashboard/${repoId}/${collection.name}`}>← Back</Link>
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || (isNew && !filename)}
+              disabled={saving || (isNew && !frontmatter.title)}
             >
               {saving ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        {/* Scrolling content */}
+        <div className="p-8 max-w-2xl flex flex-col gap-6">
           {collection.publishable && (
             <div className="flex items-center justify-between rounded-lg border px-4 py-4">
               <div className="space-y-0.5">
@@ -165,21 +175,6 @@ export default function DocumentEditor({
                 checked={currentPublished}
                 onCheckedChange={value => updateField('published', value)}
               />
-            </div>
-          )}
-
-          {isNew && (
-            <div className="space-y-1">
-              <Label htmlFor="filename">Filename (no extension)</Label>
-              <div className="flex flex-col gap-4 pt-1">
-                <Input
-                  id="filename"
-                  value={filename}
-                  onChange={e => setFilename(e.target.value)}
-                  placeholder="my-new-document"
-                  required
-                />
-              </div>
             </div>
           )}
 
