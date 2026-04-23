@@ -1,5 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import FieldRenderer from '@/components/FieldRenderer'
 import type { Field } from '@/lib/cms/types'
@@ -46,14 +47,21 @@ export default function DataFileEditor({ repoId, filePath, fields, file, label, 
 
   const handleSave = useCallback(async () => {
     setSaving(true)
-    const res = await fetch(`/api/repos/${repoId}/data/${filePath}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: values, sha }),
-    })
-    const json = await res.json()
-    if (json.sha) setSha(json.sha)
-    setSaving(false)
+    try {
+      const res = await fetch(`/api/repos/${repoId}/data/${filePath}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: values, sha }),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      const json = await res.json()
+      if (json.sha) setSha(json.sha)
+      toast.success('Saved')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setSaving(false)
+    }
   }, [repoId, filePath, values, sha])
 
   return (
@@ -65,11 +73,7 @@ export default function DataFileEditor({ repoId, filePath, fields, file, label, 
             <p className="text-xs text-muted-foreground mt-0.5">{filePath}</p>
           )}
         </div>
-        <Button
-          size="sm"
-          onClick={handleSave}
-          disabled={saving}
-        >
+        <Button size="sm" onClick={handleSave} disabled={saving}>
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </div>
