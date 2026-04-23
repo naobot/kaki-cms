@@ -1,5 +1,7 @@
 'use client'
 import { useState, useRef } from 'react'
+import { toast } from 'sonner'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Collection } from '@/lib/cms/types'
 import type { ParsedDocument } from '@/lib/cms/parser'
@@ -18,9 +20,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import Link from 'next/link'
 import DeleteDocumentButton from '@/components/DeleteDocumentButton'
-import RichTextField from './fields/RichTextField'
+import RichTextField from '@/components/fields/RichTextField'
 import { resolveSlug, toSlug } from '@/lib/cms/slugify'
 
 type Props = {
@@ -74,36 +75,44 @@ export default function DocumentEditor({
   async function performSave() {
     setSaving(true)
 
-    const resolvedFilePath = isNew
-      ? await (async () => {
-          const existing: string[] = await fetch(
-            `/api/repos/${repoId}/collections/${collectionName}/slugs`
-          ).then(r => r.json())
-          const base = toSlug(String(frontmatter.title ?? ''))
-          const slug = resolveSlug(base, existing)
-          return `${collectionPath}/${slug}.md`
-        })()
-      : filePath
+    try {
+      const resolvedFilePath = isNew
+        ? await (async () => {
+            const res = await fetch(`/api/repos/${repoId}/collections/${collectionName}/slugs`)
+            if (!res.ok) throw new Error('Failed to fetch existing slugs')
+            const existing: string[] = await res.json()
+            const base = toSlug(String(frontmatter.title ?? ''))
+            const slug = resolveSlug(base, existing)
+            return `${collectionPath}/${slug}.md`
+          })()
+        : filePath
 
-    await fetch(`/api/repos/${repoId}/content`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        frontmatter,
-        body,
-        sha: document.sha,
-        filePath: resolvedFilePath,
-        isNew,
-      }),
-    })
+      const res = await fetch(`/api/repos/${repoId}/content`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          frontmatter,
+          body,
+          sha: document.sha,
+          filePath: resolvedFilePath,
+          isNew,
+        }),
+      })
 
-    savedPublished.current = currentPublished
-    setSaving(false)
+      if (!res.ok) throw new Error('Failed to save document')
 
-    if (isNew) {
-      router.push(`/dashboard/${repoId}/${collection.name}`)
-    } else {
-      router.refresh()
+      savedPublished.current = currentPublished
+      toast.success(isNew ? 'Document created' : 'Document saved')
+
+      if (isNew) {
+        router.push(`/dashboard/${repoId}/${collection.name}`)
+      } else {
+        router.refresh()
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -140,7 +149,6 @@ export default function DocumentEditor({
       </AlertDialog>
 
       <div className="flex flex-col">
-        {/* Sticky header */}
         <div className="sticky top-0 z-10 bg-background border-b px-8 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-semibold">
             {isNew ? `New ${collection.label}` : `Edit ${collection.label}`}
@@ -158,7 +166,6 @@ export default function DocumentEditor({
           </div>
         </div>
 
-        {/* Scrolling content */}
         <div className="p-8 max-w-2xl flex flex-col gap-6">
           {collection.publishable && (
             <div className="flex items-center justify-between rounded-lg border px-4 py-4">

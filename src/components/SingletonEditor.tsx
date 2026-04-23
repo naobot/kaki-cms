@@ -1,13 +1,12 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Singleton } from '@/lib/cms/types'
 import type { ParsedDocument } from '@/lib/cms/parser'
 import FieldRenderer from '@/components/FieldRenderer'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import Link from 'next/link'
 import RichTextField from '@/components/fields/RichTextField'
 
 type Props = {
