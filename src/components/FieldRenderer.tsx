@@ -12,6 +12,7 @@ import RichTextField from '@/components/fields/RichTextField'
 import ObjectField from '@/components/fields/ObjectField'
 import DatetimeField from '@/components/fields/DatetimeField'
 import BooleanField from '@/components/fields/BooleanField'
+import type { FieldProps } from '@/components/fields/types'
 
 type Props = {
   field: Field
@@ -19,7 +20,10 @@ type Props = {
   onChangeAction: (value: unknown) => void
 }
 
-const componentMap = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFieldComponent = React.ComponentType<FieldProps<any>>
+
+const componentMap: Record<string, AnyFieldComponent> = {
   'text': TextField,
   'textarea': TextareaField,
   'number': NumberField,
@@ -32,10 +36,10 @@ const componentMap = {
   'object': ObjectField,
   'datetime': DatetimeField,
   'boolean': BooleanField
-} as const
+}
 
 export default function FieldRenderer({ field, value, onChangeAction }: Props) {
-  const Component = componentMap[field.type as keyof typeof componentMap]
+  const Component = componentMap[field.type]
 
   if (!Component) {
     return <div>Unknown field type: {field.type}</div>
