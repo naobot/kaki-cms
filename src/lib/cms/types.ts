@@ -18,6 +18,7 @@ export type Field = {
   options?: string[]    // for multiselect (static)
   data_file?: string    // for multiselect (dynamic, overrides options)
   fields?: Field[]      // for list-of-objects, recursive
+  root?: boolean
 }
 
 export type Collection = {
