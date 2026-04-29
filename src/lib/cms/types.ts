@@ -9,6 +9,8 @@ export type FieldType =
   | 'image'
   | 'image-list'
   | 'object'
+  | 'boolean'
+  | 'datetime'
 
 export type Field = {
   name: string

@@ -10,7 +10,8 @@ import ImageField from '@/components/fields/ImageField'
 import ImageListField from '@/components/fields/ImageListField'
 import RichTextField from '@/components/fields/RichTextField'
 import ObjectField from '@/components/fields/ObjectField'
-import DatetimeField from './fields/DatetimeField'
+import DatetimeField from '@/components/fields/DatetimeField'
+import BooleanField from '@/components/fields/BooleanField'
 
 type Props = {
   field: Field
@@ -29,7 +30,8 @@ const componentMap = {
   'image-list': ImageListField,
   'rich-text': RichTextField,
   'object': ObjectField,
-  'datetime': DatetimeField
+  'datetime': DatetimeField,
+  'boolean': BooleanField
 } as const
 
 export default function FieldRenderer({ field, value, onChangeAction }: Props) {
