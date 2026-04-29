@@ -10,6 +10,7 @@ import ImageField from '@/components/fields/ImageField'
 import ImageListField from '@/components/fields/ImageListField'
 import RichTextField from '@/components/fields/RichTextField'
 import ObjectField from '@/components/fields/ObjectField'
+import DatetimeField from './fields/DatetimeField'
 
 type Props = {
   field: Field
@@ -28,6 +29,7 @@ const componentMap = {
   'image-list': ImageListField,
   'rich-text': RichTextField,
   'object': ObjectField,
+  'datetime': DatetimeField
 } as const
 
 export default function FieldRenderer({ field, value, onChangeAction }: Props) {

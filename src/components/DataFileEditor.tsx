@@ -27,9 +27,12 @@ function parseStructuredFile(file: GitHubFile | null, filePath: string): Record<
   try {
     const ext = filePath.split('.').pop()?.toLowerCase()
     const parsed = ext === 'json' ? JSON.parse(file.content) : yaml.load(file.content)
-    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed))
-      ? parsed as Record<string, unknown>
-      : {}
+    if (!parsed || typeof parsed !== 'object') return {}
+    if (Array.isArray(parsed)) {
+      // Find the root field declared with root: true and store under its name
+      return { __root__: parsed }
+    }
+    return parsed as Record<string, unknown>
   } catch {
     return {}
   }
@@ -49,10 +52,13 @@ export default function DataFileEditor({ repoId, filePath, fields, file, label, 
   const handleSave = useCallback(async () => {
     setSaving(true)
     try {
+      const rootField = fields.find(f => (f as Field & { root?: boolean }).root)
+      const dataToSave = rootField ? values['__root__'] : values
+
       const res = await cmsFetch(`/api/repos/${repoId}/data/${filePath}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: values, sha }),
+        body: JSON.stringify({ data: dataToSave, sha }),
       })
       if (!res.ok) throw new Error('Failed to save')
       const json = await res.json()
