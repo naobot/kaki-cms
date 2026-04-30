@@ -67,6 +67,17 @@ function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta,
       ? doc.slug.replace(/^\d{4}-\d{2}-\d{2}-/, '')
       : doc.slug)
 
+  const extractDate = (doc: Document, meta: DocumentMeta | undefined): string | null => {
+    const publishDate = meta?.frontmatter?.publish_date
+    if (publishDate) {
+      return new Date(String(publishDate)).toISOString().slice(0, 10)
+    }
+    const match = doc.slug.match(/^(\d{4}-\d{2}-\d{2})/)
+    return match ? match[1] : null
+  }
+
+  const date = isSlugifyWithDate ? extractDate(doc, meta) : null
+
   return (
     <div
       ref={setNodeRef}
@@ -87,7 +98,15 @@ function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta,
         className={`flex flex-1 items-center justify-between px-4 py-3 hover:bg-accent transition-colors ${!isPublished ? 'opacity-50' : ''}`}
         title={doc.slug}
       >
-        <span className="text-sm font-medium">{displayName}</span>
+        <span className="text-sm font-medium flex items-center gap-2">
+          {date && (
+            <span className="text-xs font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+              {date}
+            </span>
+          )}
+          {displayName}
+        </span>
+        <span className="text-sm font-medium">{displayName ?? displaySlug}</span>
         <span className="text-xs text-muted-foreground">Edit →</span>
       </Link>
       {publishable && (
@@ -147,6 +166,24 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
     setItems(prev => [...prev].sort((a, b) => a.slug.localeCompare(b.slug)))
     setIsDirty(true)
   }, [])
+
+  const sortByDate = useCallback(() => {
+    setItems(prev => [...prev].sort((a, b) => {
+      const getDate = (doc: Document): number => {
+        // Prefer publish_date from frontmatter if available
+        const fm = meta[doc.slug]?.frontmatter
+        if (fm?.publish_date) return new Date(String(fm.publish_date)).getTime()
+        // Fall back to date extracted from slug if slugify_with_date
+        if (isSlugifyWithDate) {
+          const match = doc.slug.match(/^(\d{4}-\d{2}-\d{2})/)
+          if (match) return new Date(match[1]).getTime()
+        }
+        return 0
+      }
+      return getDate(b) - getDate(a) // newest first
+    }))
+    setIsDirty(true)
+  }, [meta, isSlugifyWithDate])
 
   const handleConfirm = useCallback(async () => {
     setIsSaving(true)
@@ -236,6 +273,9 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
       {orderable && (
         <div className="flex items-center gap-2 mb-4">
           <Button variant="outline" size="sm" onClick={sortByName}>Sort by name</Button>
+          {(isSlugifyWithDate || publishable) && (
+            <Button variant="outline" size="sm" onClick={sortByDate}>Sort by date</Button>
+          )}
           <Button
             size="sm"
             disabled={!isDirty || isSaving}
