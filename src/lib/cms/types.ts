@@ -30,6 +30,7 @@ export type Collection = {
   fields: Field[]
   orderable?: boolean
   publishable?: boolean
+  slugify_with_date?: boolean
 }
 
 export type Singleton = {

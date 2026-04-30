@@ -108,6 +108,7 @@ export default async function CollectionPage({
         orderable={collectionConfig.orderable ?? false}
         publishable={collectionConfig.publishable ?? false}
         documentMeta={documentMeta}
+        isSlugifyWithDate={collectionConfig.slugify_with_date ?? false}
       />
     </div>
   )

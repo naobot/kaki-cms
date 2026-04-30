@@ -84,6 +84,15 @@ export default function DocumentEditor({
             const existing: string[] = await res.json()
             const base = toSlug(String(frontmatter.title ?? ''))
             const slug = resolveSlug(base, existing)
+
+            if (collection.slugify_with_date) {
+              const dateSource = frontmatter.publish_date
+                ? new Date(String(frontmatter.publish_date))
+                : new Date()
+              const datePrefix = dateSource.toISOString().slice(0, 10) // YYYY-MM-DD
+              return `${collectionPath}/${datePrefix}-${slug}.md`
+            }
+
             return `${collectionPath}/${slug}.md`
           })()
         : filePath

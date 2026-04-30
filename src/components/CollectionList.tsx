@@ -37,7 +37,7 @@ type DocumentMeta = {
   frontmatter: Record<string, unknown>
 }
 
-function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta, onTogglePublished }: {
+function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta, onTogglePublished, isSlugifyWithDate }: {
   doc: Document
   repoId: string
   collection: string
@@ -45,6 +45,7 @@ function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta,
   publishable: boolean
   meta: DocumentMeta | undefined
   onTogglePublished: (slug: string) => void
+  isSlugifyWithDate?: boolean
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: doc.slug })
@@ -56,6 +57,15 @@ function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta,
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
+
+  const displaySlug = isSlugifyWithDate
+    ? doc.slug.replace(/^\d{4}-\d{2}-\d{2}-/, '')
+    : doc.slug
+
+  const displayName = (meta?.frontmatter?.title as string | undefined)
+    || (isSlugifyWithDate
+      ? doc.slug.replace(/^\d{4}-\d{2}-\d{2}-/, '')
+      : doc.slug)
 
   return (
     <div
@@ -75,8 +85,9 @@ function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta,
       <Link
         href={`/dashboard/${repoId}/${collection}/${doc.slug}`}
         className={`flex flex-1 items-center justify-between px-4 py-3 hover:bg-accent transition-colors ${!isPublished ? 'opacity-50' : ''}`}
+        title={doc.slug}
       >
-        <span className="text-sm font-medium">{doc.slug}</span>
+        <span className="text-sm font-medium">{displayName}</span>
         <span className="text-xs text-muted-foreground">Edit →</span>
       </Link>
       {publishable && (
@@ -100,7 +111,7 @@ function applyManifest(documents: Document[], orderManifest: string[] | null): D
   return [...ordered, ...unrecognised]
 }
 
-export default function CollectionList({ repoId, collection, collectionPath, documents, orderManifest, orderable, publishable, documentMeta }: {
+export default function CollectionList({ repoId, collection, collectionPath, documents, orderManifest, orderable, publishable, documentMeta, isSlugifyWithDate }: {
   repoId: string
   collection: string
   collectionPath: string
@@ -109,6 +120,7 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
   orderable: boolean
   publishable: boolean
   documentMeta: Record<string, DocumentMeta>
+  isSlugifyWithDate?: boolean
 }) {
   const [items, setItems] = useState<Document[]>(() => applyManifest(documents, orderManifest))
   const [meta, setMeta] = useState<Record<string, DocumentMeta>>(documentMeta)
@@ -211,6 +223,7 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
           collection={collection}
           isDraggable={orderable}
           publishable={publishable}
+          isSlugifyWithDate={isSlugifyWithDate}
           meta={meta[doc.slug]}
           onTogglePublished={handleTogglePublished}
         />
