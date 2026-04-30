@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { X } from 'lucide-react'
 import { cmsFetch } from '@/lib/cms/fetch'
+import LazyImage from './LazyImage'
 
 type Asset = {
   name: string
@@ -32,6 +33,7 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<Record<string, boolean>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -130,16 +132,17 @@ export default function MediaLibrary({ open, onOpenChangeAction, repoId, onSelec
         ) : assets.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">No images yet</p>
         ) : (
-          <div className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+          <div ref={gridRef} className="grid grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
             {assets.map(asset => (
               <button
                 key={asset.path}
                 onClick={() => onSelectAction(asset.path)}
                 className="group relative aspect-square rounded border bg-muted hover:border-primary transition-colors cursor-pointer"
               >
-                <img
+                <LazyImage
                   src={asset.downloadUrl}
                   alt={asset.name}
+                  title={asset.name}
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity truncate">
