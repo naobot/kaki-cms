@@ -272,7 +272,7 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
       {orderable && (
         <div className="flex items-center gap-2 mb-4">
           <Button variant="outline" size="sm" onClick={sortByName}>Sort by name</Button>
-          {(isSlugifyWithDate || publishable) && (
+          {(isSlugifyWithDate) && (
             <Button variant="outline" size="sm" onClick={sortByDate}>Sort by date</Button>
           )}
           <Button
