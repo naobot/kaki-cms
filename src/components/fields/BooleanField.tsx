@@ -1,18 +1,17 @@
 'use client'
 import type { FieldProps } from './types'
 import FieldLabel from './FieldLabel'
+import { Switch } from '@/components/ui/switch'
 
 export default function BooleanField({ field, value, onChangeAction }: FieldProps<boolean>) {
   return (
     <div className="space-y-1 flex gap-2 items-center">
       <FieldLabel field={field} />
       <div>
-        <input
-          type="checkbox"
+        <Switch
+          id="published"
           checked={value ?? false}
-          required={field.required}
-          onChange={e => onChangeAction(e.target.checked)}
-          className="h-4 w-4 rounded border-border"
+          onCheckedChange={value => onChangeAction(value)}
         />
       </div>
     </div>
