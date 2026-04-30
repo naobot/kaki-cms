@@ -4,9 +4,9 @@ import FieldLabel from './FieldLabel'
 
 export default function BooleanField({ field, value, onChangeAction }: FieldProps<boolean>) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 flex gap-2 items-center">
       <FieldLabel field={field} />
-      <div className="flex items-center gap-2 pt-1">
+      <div>
         <input
           type="checkbox"
           checked={value ?? false}
