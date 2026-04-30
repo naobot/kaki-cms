@@ -104,9 +104,8 @@ function SortableItem({ doc, repoId, collection, isDraggable, publishable, meta,
               {date}
             </span>
           )}
-          {displayName}
+          {displayName ?? displaySlug}
         </span>
-        <span className="text-sm font-medium">{displayName ?? displaySlug}</span>
         <span className="text-xs text-muted-foreground">Edit →</span>
       </Link>
       {publishable && (
