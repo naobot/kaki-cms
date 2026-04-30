@@ -1,13 +1,15 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
+import Image from '@tiptap/extension-image'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import type { FieldProps } from './types'
-import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Minus } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Minus } from 'lucide-react'
 import FieldLabel from './FieldLabel'
+import { useRepo } from '@/lib/cms/context'
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -19,11 +21,14 @@ type Props = FieldProps<string>
 
 export default function RichTextField({ field, value, onChangeAction }: Props) {
   const initialised = useRef(false)
+  const [imagePickerOpen, setImagePickerOpen] = useState(false)
+  const { repo } = useRepo()
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit,
+      Image,
       Link.configure({ openOnClick: false }),
     ],
     content: '',
@@ -92,6 +97,12 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
             title="Link"
           >
             <LinkIcon size={14} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => setImagePickerOpen(true)}
+            title="Insert image"
+          >
+            <ImageIcon size={14} />
           </ToolbarButton>
           <ToolbarButton
             onClick={() => editor?.chain().focus().setHorizontalRule().run()}
