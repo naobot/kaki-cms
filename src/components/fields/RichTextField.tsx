@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -12,18 +12,33 @@ import FieldLabel from './FieldLabel'
 import { useRepo } from '@/lib/cms/context'
 import MediaLibrary from '@/components/MediaLibrary'
 
-const turndown = new TurndownService({
-  headingStyle: 'atx',
-  bulletListMarker: '-',
-  codeBlockStyle: 'fenced',
-})
-
 type Props = FieldProps<string>
 
 export default function RichTextField({ field, value, onChangeAction }: Props) {
   const initialised = useRef(false)
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
-  const { repo } = useRepo()
+  const { repo, config } = useRepo()
+  const baseUrl = config.base_url ?? ''
+
+  const turndown = useMemo(() => {
+    const td = new TurndownService({
+      headingStyle: 'atx',
+      bulletListMarker: '-',
+      codeBlockStyle: 'fenced',
+    })
+
+    td.addRule('image', {
+      filter: 'img',
+      replacement: (_content, node) => {
+        const img = node as HTMLImageElement
+        const alt = img.getAttribute('alt') ?? ''
+        const src = (img.getAttribute('src') ?? '').replace(baseUrl, '')
+        return `![${alt}](${src})`
+      },
+    })
+
+    return td
+  }, [baseUrl])
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -44,7 +59,21 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
   useEffect(() => {
     if (!editor || initialised.current) return
     const html = marked.parse(value ?? '') as string
-    editor.commands.setContent(html, { emitUpdate: false })
+
+    // Display images in rich text editor from correct base URL
+    if (baseUrl) {
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      doc.querySelectorAll('img').forEach(img => {
+        const src = img.getAttribute('src') ?? ''
+        if (src.startsWith('/')) {
+          img.setAttribute('src', baseUrl + src)
+        }
+      })
+      editor.commands.setContent(doc.body.innerHTML, { emitUpdate: false })
+    } else {
+      editor.commands.setContent(html, { emitUpdate: false })
+    }
+
     initialised.current = true
   }, [editor, value])
 
@@ -125,7 +154,7 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
         onOpenChangeAction={setImagePickerOpen}
         repoId={repo.id}
         onSelectAction={(path) => {
-          editor?.chain().focus().setImage({ src: path }).run()
+          editor?.chain().focus().setImage({ src: baseUrl + path }).run()
           setImagePickerOpen(false)
         }}
       />
