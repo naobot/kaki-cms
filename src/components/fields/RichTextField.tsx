@@ -10,6 +10,7 @@ import type { FieldProps } from './types'
 import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Minus } from 'lucide-react'
 import FieldLabel from './FieldLabel'
 import { useRepo } from '@/lib/cms/context'
+import MediaLibrary from '@/components/MediaLibrary'
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -118,6 +119,16 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
           className="min-h-48 max-h-[500px] overflow-y-auto border border-t-0 rounded-b-md px-3 py-2 text-sm prose prose-sm max-w-none focus-within:outline-none"
         />
       </div>
+
+      <MediaLibrary
+        open={imagePickerOpen}
+        onOpenChangeAction={setImagePickerOpen}
+        repoId={repo.id}
+        onSelectAction={(path) => {
+          editor?.chain().focus().setImage({ src: path }).run()
+          setImagePickerOpen(false)
+        }}
+      />
     </div>
   )
 }
