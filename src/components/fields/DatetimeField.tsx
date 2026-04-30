@@ -5,20 +5,14 @@ import FieldLabel from './FieldLabel'
 
 function toLocalDatetime(value: string | undefined): string {
   if (!value) return ''
-  try {
-    const date = new Date(value)
-    if (isNaN(date.getTime())) return ''
-    // datetime-local expects YYYY-MM-DDTHH:mm
-    return date.toISOString().slice(0, 16)
-  } catch {
-    return ''
-  }
+  // datetime-local expects YYYY-MM-DDTHH:mm
+  // Strip timezone suffix (Z or ±HH:mm) before slicing
+  return value.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16)
 }
 
 function toISOString(value: string): string {
   if (!value) return ''
-  // Append seconds and UTC timezone to make a full ISO string
-  return new Date(value + ':00Z').toISOString()
+  return value + ':00.000Z'
 }
 
 export default function DatetimeField({ field, value, onChangeAction }: FieldProps<string>) {
