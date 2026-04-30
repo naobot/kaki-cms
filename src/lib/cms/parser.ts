@@ -1,4 +1,5 @@
 import matter from 'gray-matter'
+import yaml from 'js-yaml'
 
 export type ParsedDocument = {
   frontmatter: Record<string, unknown>
@@ -7,7 +8,11 @@ export type ParsedDocument = {
 }
 
 export function parseDocument(rawContent: string, sha: string): ParsedDocument {
-  const { data, content } = matter(rawContent)
+  const { data, content } = matter(rawContent, {
+    engines: {
+      yaml: (str) => yaml.load(str, { schema: yaml.JSON_SCHEMA }) as Record<string, unknown>,
+    },
+  })
   return {
     frontmatter: data,
     body: content,

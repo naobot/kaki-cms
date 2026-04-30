@@ -21,6 +21,7 @@ export type Field = {
   data_file?: string    // for multiselect (dynamic, overrides options)
   fields?: Field[]      // for list-of-objects, recursive
   root?: boolean
+  timezone?: boolean
 }
 
 export type Collection = {
