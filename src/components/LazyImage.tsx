@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 type Props = {
   src: string
   alt: string
+  title?: string
   className?: string
   containerRef?: React.RefObject<HTMLElement>
 }
@@ -39,7 +40,7 @@ export default function LazyImage({ src, alt, className, containerRef }: Props) 
       ref={imgRef}
       src={visible ? src : undefined}
       alt={alt}
-      title={alt}
+      title={title}
       onLoad={() => setLoaded(true)}
       className={`transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'} ${className ?? ''}`}
     />
