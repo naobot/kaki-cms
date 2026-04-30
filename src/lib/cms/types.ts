@@ -48,6 +48,7 @@ export type DataFile = {
 }
 
 export type CMSConfig = {
+  base_url?: string
   collections: Collection[]
   singletons?: Singleton[]
   assets_path?: string
