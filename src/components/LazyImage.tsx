@@ -9,7 +9,7 @@ type Props = {
   containerRef?: React.RefObject<HTMLElement>
 }
 
-export default function LazyImage({ src, alt, className, containerRef }: Props) {
+export default function LazyImage({ src, alt, title, className, containerRef }: Props) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [visible, setVisible] = useState(false)
   const [loaded, setLoaded] = useState(false)
