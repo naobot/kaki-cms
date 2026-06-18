@@ -61,6 +61,7 @@ export async function GET(
 
     return NextResponse.json(images)
   } catch (err) {
+    console.log(err)
     if (err instanceof GitHubAuthError) {
       return NextResponse.json({ error: 'github_auth' }, { status: 401 })
     }
