@@ -45,6 +45,7 @@ export async function PUT(
       isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
     )
   } catch (err) {
+    console.error('Failed to save content:', err)
     if (err instanceof GitHubAuthError) {
       return NextResponse.json({ error: 'github_auth' }, { status: 401 })
     }

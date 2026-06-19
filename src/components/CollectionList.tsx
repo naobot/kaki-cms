@@ -224,10 +224,14 @@ export default function CollectionList({ repoId, collection, collectionPath, doc
         }),
       })
 
-      if (!res.ok) throw new Error('Failed to update')
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(`Failed to update: ${res.status} ${JSON.stringify(body)}`)
+      }
 
       toast.success(newPublished ? 'Document published' : 'Document unpublished')
-    } catch {
+    } catch (err) {
+      console.error('Failed to toggle publish status:', err)
       setMeta(prev => ({
         ...prev,
         [slug]: { ...prev[slug], published: current.published },
