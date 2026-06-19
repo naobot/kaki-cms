@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { deleteFile, GitHubAuthError, putFile } from '@/lib/github/api'
+import { deleteFile, getFile, GitHubAuthError, putFile } from '@/lib/github/api'
 import { serialiseDocument } from '@/lib/cms/parser'
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 
 export async function PUT(
   request: NextRequest,
@@ -32,20 +33,28 @@ export async function PUT(
 
   if (!tokenRow) return NextResponse.json({ error: 'No token found' }, { status: 404 })
 
-  const { frontmatter, body, sha, filePath, isNew } = await request.json()
+  const { frontmatter, body, filePath, isNew } = await request.json()
   const serialised = serialiseDocument(frontmatter, body)
 
   try {
+    // Always fetch the current sha from GitHub rather than trusting the client's copy,
+    // which can be stale if the file was edited after the page loaded.
+    let currentSha: string | undefined
+    if (!isNew) {
+      const current = await getFile(tokenRow.access_token, repo.github_repo, filePath)
+      currentSha = current?.sha
+    }
+
     await putFile(
       tokenRow.access_token,
       repo.github_repo,
       filePath,
       serialised,
-      isNew ? undefined : sha,
+      currentSha,
       isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
     )
   } catch (err) {
-    console.error('Failed to save content:', err)
+    Sentry.captureException(err)
     if (err instanceof GitHubAuthError) {
       return NextResponse.json({ error: 'github_auth' }, { status: 401 })
     }
