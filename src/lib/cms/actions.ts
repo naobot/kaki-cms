@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getFile, putFile } from '@/lib/github/api'
 
 export async function saveOrder(
@@ -9,18 +10,23 @@ export async function saveOrder(
   slugs: string[]
 ): Promise<void> {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
 
-  const { data: repo } = await supabase
+  const serviceSupabase = createServiceClient()
+
+  const { data: repo } = await serviceSupabase
     .from('repos')
-    .select()
+    .select('github_repo, owner_id')
     .eq('id', repoId)
     .single()
 
   if (!repo) throw new Error('Repo not found')
 
-  const { data: tokenRow } = await supabase
+  const { data: tokenRow } = await serviceSupabase
     .from('github_tokens')
     .select('access_token')
+    .eq('user_id', repo.owner_id)
     .single()
 
   if (!tokenRow) throw new Error('No GitHub token found')
