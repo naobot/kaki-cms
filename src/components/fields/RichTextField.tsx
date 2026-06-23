@@ -7,10 +7,11 @@ import Image from '@tiptap/extension-image'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import type { FieldProps } from './types'
-import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Minus } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Minus, Code2 } from 'lucide-react'
 import FieldLabel from './FieldLabel'
 import { useRepo } from '@/lib/cms/context'
 import MediaLibrary from '@/components/MediaLibrary'
+import { EmbedNode } from './EmbedNode'
 
 type Props = FieldProps<string>
 
@@ -37,6 +38,14 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
       },
     })
 
+    td.addRule('embed', {
+      filter: (node) => node.nodeName === 'DIV' && node.getAttribute('data-type') === 'embed',
+      replacement: (_content, node) => {
+        const html = (node as HTMLElement).getAttribute('data-html') ?? ''
+        return `\n\n${html}\n\n`
+      },
+    })
+
     return td
   }, [baseUrl])
 
@@ -46,6 +55,7 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
       StarterKit,
       Image,
       Link.configure({ openOnClick: false }),
+      EmbedNode,
     ],
     content: '',
     onUpdate({ editor }) {
@@ -81,6 +91,12 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
     const url = window.prompt('URL')
     if (!url) return
     editor?.chain().focus().setLink({ href: url }).run()
+  }
+
+  function insertEmbed() {
+    const html = window.prompt('Paste embed HTML (e.g. YouTube iframe code)')
+    if (!html?.trim()) return
+    editor?.chain().focus().setEmbed(html.trim()).run()
   }
 
   return (
@@ -139,6 +155,13 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
             title="Horizontal rule"
           >
             <Minus size={14} />
+          </ToolbarButton>
+          <Divider />
+          <ToolbarButton
+            onClick={insertEmbed}
+            title="Insert embed"
+          >
+            <Code2 size={14} />
           </ToolbarButton>
         </div>
 
