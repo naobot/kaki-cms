@@ -28,10 +28,13 @@ export async function POST(
   if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
 
   // Create or retrieve the user via admin client
+  const confirmUrl = new URL('/auth/confirm', process.env.NEXT_PUBLIC_SITE_URL)
+  confirmUrl.searchParams.set('repo_id', repoId)
+
   const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     email,
     {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?repo_id=${repoId}`,
+      redirectTo: confirmUrl.toString(),
     }
   )
   // Get the user id — either from the invite or look them up

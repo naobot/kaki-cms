@@ -9,35 +9,39 @@ export default function AuthConfirmPage() {
   const router = useRouter()
 
   useEffect(() => {
+    const supabase = createClient()
+
+    // Password recovery uses the PKCE flow (the browser client defaults to it), which
+    // redirects here with a `code` query param instead of hash-fragment tokens. Admin-triggered
+    // invites don't support PKCE, so they still arrive as hash tokens (handled below).
+    const code = new URLSearchParams(window.location.search).get('code')
+
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (error || !data.session) {
+          router.replace('/login?error=invalid_invite')
+        } else {
+          router.replace('/auth/reset-password')
+        }
+      })
+      return
+    }
+
     const hash = window.location.hash.substring(1) // strip the leading #
     const params = new URLSearchParams(hash)
 
     const accessToken = params.get('access_token')
     const refreshToken = params.get('refresh_token')
-    const type = params.get('type')
-
-    console.log('=== /auth/confirm (client) ===')
-    console.log('type:', type)
-    console.log('access_token present:', !!accessToken)
-    console.log('refresh_token present:', !!refreshToken)
 
     if (!accessToken || !refreshToken) {
-      console.log('Missing tokens in hash — redirecting to error')
       router.replace('/login?error=invalid_invite')
       return
     }
 
-    const supabase = createClient()
-
     supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
       .then(({ data, error }) => {
-        console.log('setSession user:', data.session?.user?.email ?? null)
-        console.log('setSession error:', error?.message ?? null)
-
         if (error || !data.session) {
           router.replace('/login?error=invalid_invite')
-        } else if (type === 'recovery') {
-          router.replace('/auth/reset-password')
         } else {
           router.replace('/auth/set-password')
         }
