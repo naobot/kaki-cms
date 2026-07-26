@@ -13,12 +13,15 @@ export default async function LoginPage({
   const { error } = await searchParams
   const supabase = await createClient()
 
-  if (error === 'invalid_invite') {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // A stale/duplicate visit to this URL (e.g. a reset/invite link processed twice) shouldn't
+  // sign out a user who already has a valid session from a since-succeeded attempt.
+  if (error === 'invalid_invite' && !user) {
     await supabase.auth.signOut()
   }
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user && !error) redirect('/dashboard')
+  if (user && (!error || error === 'invalid_invite')) redirect('/dashboard')
 
   return (
     <main className="min-h-screen flex items-center justify-center">

@@ -1,14 +1,20 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function AuthConfirmPage() {
   const router = useRouter()
+  const hasRun = useRef(false)
 
   useEffect(() => {
+    // The code/token in the URL is single-use — guard against processing it twice (e.g. an
+    // effect re-run), which would fail the second time and sign out the session the first run just created.
+    if (hasRun.current) return
+    hasRun.current = true
+
     const supabase = createClient()
 
     // Password recovery uses the PKCE flow (the browser client defaults to it), which
