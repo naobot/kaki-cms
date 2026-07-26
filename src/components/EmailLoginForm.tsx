@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,6 +50,9 @@ export default function EmailLoginForm() {
           placeholder="••••••••"
         />
       </div>
+      <Link href="/auth/forgot-password" className="text-sm text-muted-foreground hover:underline">
+        Forgot password?
+      </Link>
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}

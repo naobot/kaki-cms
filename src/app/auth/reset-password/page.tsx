@@ -1,21 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import SetPasswordForm from './SetPasswordForm'
+import ResetPasswordForm from './ResetPasswordForm'
 
-export default async function SetPasswordPage() {
+export default async function ResetPasswordPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('password_set')
-    .eq('user_id', user.id)
-    .single()
-
-  if (profile?.password_set) redirect('/dashboard')
 
   return (
     <main className="min-h-screen flex items-center justify-center">
@@ -23,10 +15,10 @@ export default async function SetPasswordPage() {
         <Card>
           <CardHeader className="text-center">
             <CardTitle>Kaki CMS</CardTitle>
-            <CardDescription>Set a password to continue</CardDescription>
+            <CardDescription>Choose a new password</CardDescription>
           </CardHeader>
           <CardContent>
-            <SetPasswordForm />
+            <ResetPasswordForm />
           </CardContent>
         </Card>
       </div>

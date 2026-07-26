@@ -51,16 +51,6 @@ export async function POST(
   }
 
   if (!editorUserId) {
-    const { data: existingUser } = await admin
-      .from('auth.users')
-      .select('id')
-      .eq('email', email)
-      .single()
-
-    editorUserId = existingUser?.id
-  }
-
-  if (!editorUserId) {
     return NextResponse.json({ error: 'Could not resolve user' }, { status: 500 })
   }
 
