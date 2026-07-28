@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error && data.session?.provider_token) {
+    if (!error && data.session?.provider_token && data.session.user.app_metadata.provider === 'github') {
       await supabase.from('github_tokens').upsert({
         user_id: data.session.user.id,
         access_token: data.session.provider_token,

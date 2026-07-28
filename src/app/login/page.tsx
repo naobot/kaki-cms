@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import GitHubLoginButton from '@/components/GitHubLoginButton'
+import GoogleLoginButton from '@/components/GoogleLoginButton'
 import EmailLoginForm from '@/components/EmailLoginForm'
 
 export default async function LoginPage({
@@ -47,7 +48,13 @@ export default async function LoginPage({
                 <TabsTrigger value="editor" className="flex-1">Editor</TabsTrigger>
                 <TabsTrigger value="developer" className="flex-1">Developer</TabsTrigger>
               </TabsList>
-              <TabsContent value="editor">
+              <TabsContent value="editor" className="flex flex-col gap-4">
+                <GoogleLoginButton />
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="h-px flex-1 bg-border" />
+                  or
+                  <div className="h-px flex-1 bg-border" />
+                </div>
                 <EmailLoginForm />
               </TabsContent>
               <TabsContent value="developer">
