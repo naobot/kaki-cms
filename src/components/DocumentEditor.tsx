@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Info } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -269,7 +271,30 @@ export default function DocumentEditor({
         <div className="p-8 max-w-2xl flex flex-col gap-6">
           {!isNew && filePath && (
             <div className="rounded-lg border px-4 py-4 flex flex-col gap-2">
-              <Label htmlFor="slug">Slug</Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="slug">Slug</Label>
+                <Tooltip>
+                  {/* A button rather than the icon alone so the explanation is
+                      reachable by keyboard and on touch, where hover doesn't exist. */}
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="What is a slug?"
+                    >
+                      <Info size={14} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    The slug is the short, lowercase name for this item that appears
+                    in its web address — the bit after the last slash, like
+                    <code className="font-mono"> …/{savedSlug || 'my-item'}</code>. It&apos;s
+                    created from the title, and editing it changes the item&apos;s link,
+                    so anyone who bookmarked or shared the old address will get a
+                    &ldquo;not found&rdquo; page.
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               {editingSlug ? (
                 <>
                   <div className="flex items-center gap-2">
