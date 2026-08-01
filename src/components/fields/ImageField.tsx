@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import MediaLibrary from '@/components/MediaLibrary'
 import type { Field } from '@/lib/cms/types'
 import FieldLabel from './FieldLabel'
+import { assetProxyUrl } from '@/lib/cms/assets'
 
 type Props = {
   field: Field
@@ -19,9 +20,9 @@ export default function ImageField({ field, value, onChangeAction }: Props) {
 
   const currentPath = typeof value === 'string' ? value : ''
 
-  const previewUrl = currentPath
-    ? `https://raw.githubusercontent.com/${repo.github_repo}/HEAD/public${currentPath}`
-    : null
+  // Previously built a raw.githubusercontent URL with a hardcoded `public/`
+  // segment, which 404s for repos that don't use one (and for private repos).
+  const previewUrl = currentPath ? assetProxyUrl(repo.id, currentPath) : null
 
   return (
     <div className="space-y-1">

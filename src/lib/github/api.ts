@@ -38,6 +38,28 @@ export async function getFile(
   return { content, sha: data.sha }
 }
 
+/**
+ * Fetches a file as raw bytes. `getFile` decodes as UTF-8, which corrupts
+ * binary content, so images must come through here.
+ */
+export async function getFileBinary(
+  token: string,
+  repo: string,
+  path: string
+): Promise<Buffer | null> {
+  const response = await githubFetch(token, `${GITHUB_API}/repos/${repo}/contents/${path}`, {
+    headers: { Accept: 'application/vnd.github.raw' },
+  })
+
+  if (response.status === 404) return null
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.status}`)
+  }
+
+  return Buffer.from(await response.arrayBuffer())
+}
+
 export async function getDirectory(
   token: string,
   repo: string,

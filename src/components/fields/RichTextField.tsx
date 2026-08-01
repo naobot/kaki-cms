@@ -12,6 +12,7 @@ import FieldLabel from './FieldLabel'
 import { useRepo } from '@/lib/cms/context'
 import MediaLibrary from '@/components/MediaLibrary'
 import { EmbedNode } from './EmbedNode'
+import { assetProxyUrl, sitePathFromProxyUrl } from '@/lib/cms/assets'
 
 type Props = FieldProps<string>
 
@@ -33,7 +34,11 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
       replacement: (_content, node) => {
         const img = node as HTMLImageElement
         const alt = img.getAttribute('alt') ?? ''
-        const src = (img.getAttribute('src') ?? '').replace(baseUrl, '')
+        const rawSrc = img.getAttribute('src') ?? ''
+        // Images render through the asset proxy, but content written before
+        // that (or pasted in) can still carry a site-absolute URL.
+        const src = sitePathFromProxyUrl(rawSrc)
+          ?? (baseUrl ? rawSrc.replace(baseUrl, '') : rawSrc)
         return `![${alt}](${src})`
       },
     })
@@ -70,22 +75,21 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
     if (!editor || initialised.current) return
     const html = marked.parse(value ?? '') as string
 
-    // Display images in rich text editor from correct base URL
-    if (baseUrl) {
-      const doc = new DOMParser().parseFromString(html, 'text/html')
-      doc.querySelectorAll('img').forEach(img => {
-        const src = img.getAttribute('src') ?? ''
-        if (src.startsWith('/')) {
-          img.setAttribute('src', baseUrl + src)
-        }
-      })
-      editor.commands.setContent(doc.body.innerHTML, { emitUpdate: false })
-    } else {
-      editor.commands.setContent(html, { emitUpdate: false })
-    }
+    // Point stored site paths at the asset proxy so they render here regardless
+    // of whether the site has been rebuilt since the image was uploaded.
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    doc.querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src') ?? ''
+      if (src.startsWith('/')) {
+        img.setAttribute('src', assetProxyUrl(repo.id, src))
+      } else if (baseUrl && src.startsWith(baseUrl)) {
+        img.setAttribute('src', assetProxyUrl(repo.id, src.slice(baseUrl.length)))
+      }
+    })
+    editor.commands.setContent(doc.body.innerHTML, { emitUpdate: false })
 
     initialised.current = true
-  }, [editor, value])
+  }, [editor, value, baseUrl, repo.id])
 
   function setLink() {
     const url = window.prompt('URL')
@@ -179,7 +183,7 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
         onOpenChangeAction={setImagePickerOpen}
         repoId={repo.id}
         onSelectAction={(path) => {
-          editor?.chain().focus().setImage({ src: baseUrl + path }).run()
+          editor?.chain().focus().setImage({ src: assetProxyUrl(repo.id, path) }).run()
           setImagePickerOpen(false)
         }}
       />

@@ -4,6 +4,7 @@ import { fetchConfig } from '@/lib/cms/config'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sanitiseFilename } from '@/lib/cms/slugify'
+import { DEFAULT_ASSETS_PATH, toRepoAssetPath, toSiteAssetPath } from '@/lib/cms/assets'
 
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
 
@@ -47,14 +48,14 @@ export async function GET(
 
   try {
     const config = await fetchConfig(token, repo.github_repo)
-    const assetsPath = config.assets_path ?? 'public/assets/uploads'
+    const assetsPath = config.assets_path ?? DEFAULT_ASSETS_PATH
 
     const files = await getDirectoryWithMeta(token, repo.github_repo, assetsPath)
     const images = files
       .filter(f => f.type === 'file' && isImage(f.name))
       .map(f => ({
         name: f.name,
-        path: '/' + f.path.replace(/^public\//, ''),
+        path: toSiteAssetPath(f.path),
         sha: f.sha,
         downloadUrl: f.downloadUrl,
       }))
@@ -92,7 +93,7 @@ export async function POST(
 
   try {
     const config = await fetchConfig(token, repo.github_repo)
-    const assetsPath = config.assets_path ?? 'public/assets/uploads'
+    const assetsPath = config.assets_path ?? DEFAULT_ASSETS_PATH
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
@@ -101,7 +102,7 @@ export async function POST(
 
     await putFileBinary(token, repo.github_repo, filePath, buffer, `Upload ${file.name} via CMS`)
 
-    const storedPath = '/' + filePath.replace(/^public\//, '')
+    const storedPath = toSiteAssetPath(filePath)
     return NextResponse.json({ path: storedPath })
   } catch (err) {
     if (err instanceof GitHubAuthError) {
@@ -125,9 +126,19 @@ export async function DELETE(
   if (!repo || !token) return NextResponse.json({ error: 'Repo not found' }, { status: 404 })
 
   const { filePath, sha } = await request.json()
-  const repoFilePath = 'public' + filePath
 
   try {
+    // The `public/` segment is only part of the repo path when the configured
+    // assets path actually uses one — assuming it made deletes fail outright
+    // for repos laid out any other way.
+    const config = await fetchConfig(token, repo.github_repo)
+    const assetsPath = config.assets_path ?? DEFAULT_ASSETS_PATH
+    const repoFilePath = toRepoAssetPath(filePath, assetsPath)
+
+    if (repoFilePath.includes('..') || !repoFilePath.startsWith(`${assetsPath}/`)) {
+      return NextResponse.json({ error: 'Path not allowed' }, { status: 403 })
+    }
+
     await deleteFile({ repo: repo.github_repo, filePath: repoFilePath, sha, token })
     return new Response(null, { status: 200 })
   } catch (err) {
