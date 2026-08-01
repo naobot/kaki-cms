@@ -166,9 +166,11 @@ export default function RichTextField({ field, value, onChangeAction }: Props) {
         </div>
 
         {/* Editor */}
+        {/* The editable area is stretched to fill the box so a click anywhere
+            in it (not just on the first line) puts the cursor in the document. */}
         <EditorContent
           editor={editor}
-          className="min-h-48 max-h-[500px] overflow-y-auto border border-t-0 rounded-b-md px-3 py-2 text-sm prose prose-sm max-w-none focus-within:outline-none"
+          className="flex flex-col min-h-48 max-h-[500px] overflow-y-auto border border-t-0 rounded-b-md text-sm prose prose-sm max-w-none cursor-text [&_.ProseMirror]:flex-1 [&_.ProseMirror]:px-3 [&_.ProseMirror]:py-2 [&_.ProseMirror]:outline-none"
         />
       </div>
 
