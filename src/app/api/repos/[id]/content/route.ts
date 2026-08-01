@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { deleteFile, getFile, GitHubAuthError, putFile } from '@/lib/github/api'
 import { serialiseDocument } from '@/lib/cms/parser'
+import { renameInOrderManifest } from '@/lib/cms/order'
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 
@@ -33,26 +34,73 @@ export async function PUT(
 
   if (!tokenRow) return NextResponse.json({ error: 'No token found' }, { status: 404 })
 
-  const { frontmatter, body, filePath, isNew } = await request.json()
+  const { frontmatter, body, filePath, isNew, previousFilePath } = await request.json()
   const serialised = serialiseDocument(frontmatter, body)
 
-  try {
-    // Always fetch the current sha from GitHub rather than trusting the client's copy,
-    // which can be stale if the file was edited after the page loaded.
-    let currentSha: string | undefined
-    if (!isNew) {
-      const current = await getFile(tokenRow.access_token, repo.github_repo, filePath)
-      currentSha = current?.sha
-    }
+  const isRename = !isNew
+    && typeof previousFilePath === 'string'
+    && previousFilePath !== filePath
 
-    await putFile(
-      tokenRow.access_token,
-      repo.github_repo,
-      filePath,
-      serialised,
-      currentSha,
-      isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
-    )
+  try {
+    if (isRename) {
+      // GitHub has no rename operation: write the document at its new path,
+      // then delete the old one. Writing first means a failure part-way through
+      // leaves a duplicate rather than losing the document.
+      const existingAtTarget = await getFile(tokenRow.access_token, repo.github_repo, filePath)
+      if (existingAtTarget) {
+        return NextResponse.json({ error: 'slug_taken' }, { status: 409 })
+      }
+
+      const current = await getFile(tokenRow.access_token, repo.github_repo, previousFilePath)
+      if (!current) {
+        return NextResponse.json({ error: 'not_found' }, { status: 404 })
+      }
+
+      await putFile(
+        tokenRow.access_token,
+        repo.github_repo,
+        filePath,
+        serialised,
+        undefined,
+        `Rename ${previousFilePath} to ${filePath} via CMS`
+      )
+
+      await deleteFile({
+        repo: repo.github_repo,
+        filePath: previousFilePath,
+        sha: current.sha,
+        token: tokenRow.access_token,
+      })
+
+      // A stale order manifest only affects list ordering, so never fail the save over it.
+      try {
+        await renameInOrderManifest(
+          tokenRow.access_token,
+          repo.github_repo,
+          previousFilePath,
+          filePath
+        )
+      } catch (err) {
+        Sentry.captureException(err)
+      }
+    } else {
+      // Always fetch the current sha from GitHub rather than trusting the client's copy,
+      // which can be stale if the file was edited after the page loaded.
+      let currentSha: string | undefined
+      if (!isNew) {
+        const current = await getFile(tokenRow.access_token, repo.github_repo, filePath)
+        currentSha = current?.sha
+      }
+
+      await putFile(
+        tokenRow.access_token,
+        repo.github_repo,
+        filePath,
+        serialised,
+        currentSha,
+        isNew ? `Create ${filePath} via CMS` : `Update ${filePath} via CMS`
+      )
+    }
   } catch (err) {
     Sentry.captureException(err)
     if (err instanceof GitHubAuthError) {
