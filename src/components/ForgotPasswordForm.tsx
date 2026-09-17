@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,11 +30,20 @@ export default function ForgotPasswordForm() {
     setStatus('sent')
   }
 
+  const backLink = (
+    <Link href="/login" className="text-sm text-muted-foreground hover:underline">
+      Back to sign in
+    </Link>
+  )
+
   if (status === 'sent') {
     return (
-      <p className="text-sm text-muted-foreground">
-        If an account exists for {email}, we&apos;ve sent a password reset link to it.
-      </p>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-muted-foreground">
+          If an account exists for {email}, we&apos;ve sent a password reset link to it.
+        </p>
+        {backLink}
+      </div>
     )
   }
 
@@ -58,6 +68,7 @@ export default function ForgotPasswordForm() {
       >
         {status === 'submitting' ? 'Sending...' : 'Send reset link'}
       </Button>
+      {backLink}
     </div>
   )
 }

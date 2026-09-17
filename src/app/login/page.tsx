@@ -18,18 +18,20 @@ export default async function LoginPage({
 
   // A stale/duplicate visit to this URL (e.g. a reset/invite link processed twice) shouldn't
   // sign out a user who already has a valid session from a since-succeeded attempt.
-  if (error === 'invalid_invite' && !user) {
+  const isInvalidLink = error === 'invalid_link' || error === 'invalid_invite'
+
+  if (isInvalidLink && !user) {
     await supabase.auth.signOut()
   }
 
-  if (user && (!error || error === 'invalid_invite')) redirect('/dashboard')
+  if (user && (!error || isInvalidLink)) redirect('/dashboard')
 
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-sm flex flex-col gap-4">
-        {error === 'invalid_invite' && (
+        {isInvalidLink && (
           <p className="text-sm text-destructive text-center">
-            This invite link is invalid or has expired. Please ask your administrator to send a new invite.
+            This link is invalid or has expired. Request a new password reset, or ask your administrator to send a new invite.
           </p>
         )}
         {error === 'no_repo' && (

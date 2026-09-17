@@ -33,7 +33,7 @@ export default function AuthConfirmPage() {
     const timeout = setTimeout(() => {
       if (!handled.current) {
         handled.current = true
-        router.replace('/login?error=invalid_invite')
+        router.replace('/login?error=invalid_link')
       }
     }, 5000)
 

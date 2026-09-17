@@ -152,6 +152,14 @@ export default function Sidebar({ repoId, projectName, collections, singletons, 
             ← All repos
           </Link>
         )}
+        <Link
+          href="/account"
+          className={`text-sm transition-colors hover:text-foreground ${
+            pathname === '/account' ? 'text-foreground font-medium' : 'text-muted-foreground'
+          }`}
+        >
+          Account
+        </Link>
         <form action={signOut} className="mt-auto">
           <Button type="submit" className="text-sm w-full">
             Sign out

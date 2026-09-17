@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import NewPasswordFields, { validateNewPassword } from '@/components/NewPasswordFields'
 
 export default function SetPasswordForm() {
   const router = useRouter()
@@ -17,13 +16,9 @@ export default function SetPasswordForm() {
   async function handleSubmit() {
     setError(null)
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
-      return
-    }
-
-    if (password !== confirm) {
-      setError('Passwords do not match.')
+    const validationError = validateNewPassword(password, confirm)
+    if (validationError) {
+      setError(validationError)
       return
     }
 
@@ -53,25 +48,13 @@ export default function SetPasswordForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="At least 8 characters"
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="confirm">Confirm password</Label>
-        <Input
-          id="confirm"
-          type="password"
-          value={confirm}
-          onChange={e => setConfirm(e.target.value)}
-        />
-      </div>
+      <NewPasswordFields
+        password={password}
+        confirm={confirm}
+        onPasswordChange={setPassword}
+        onConfirmChange={setConfirm}
+        passwordLabel="Password"
+      />
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}

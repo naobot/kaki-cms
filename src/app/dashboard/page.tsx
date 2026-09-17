@@ -27,9 +27,14 @@ export default async function DashboardPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Client Repos</h1>
-        <Button asChild>
-          <Link href="/dashboard/repos/new">Add repo</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="ghost">
+            <Link href="/account">Account</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard/repos/new">Add repo</Link>
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {(repos ?? []).map(repo => (
